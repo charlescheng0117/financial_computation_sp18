@@ -44,11 +44,19 @@ def get_option_value(S0, r, q, sigma, T, K1, K2, K3, K4):
     d1_K2, d2_K2 = calc_d1(S0, K2, r, q, sigma, T), calc_d2(S0, K2, r, q, sigma, T)
     d1_K3, d2_K3 = calc_d1(S0, K3, r, q, sigma, T), calc_d2(S0, K3, r, q, sigma, T)
     d1_K4, d2_K4 = calc_d1(S0, K4, r, q, sigma, T), calc_d2(S0, K4, r, q, sigma, T)
-
+    
+    """
     value = S0 * np.exp(-q * T) * norm.cdf(d1_K1) - K1 * np.exp(-r * T) * norm.cdf(d2_K1) \
             - S0 * np.exp(-q * T) * norm.cdf(d1_K2) + K2 * np.exp(-r * T) * norm.cdf(d2_K2) \
             - ( (K2 - K1)/(K4 - K3) ) * S0 * np.exp(-q * T) * norm.cdf(d1_K3) + K3 * np.exp(-r * T) * norm.cdf(d2_K3) \
             + ( (K2 - K1)/(K4 - K3) ) * S0 * np.exp(-q * T) * norm.cdf(d1_K4) - K4 * np.exp(-r * T) * norm.cdf(d2_K4)
+    """
+    value = S0 * np.exp(-q * T) * ( norm.cdf(d1_K1) - norm.cdf(d1_K2) ) \
+            - K1 * np.exp(-r * T) * ( norm.cdf(d2_K1) - norm.cdf(d2_K2) ) \
+            + (K2 - K1) * np.exp(-r * T) *  ( norm.cdf(d2_K2) - norm.cdf(d2_K3) ) \
+            + ( (K1 - K2)/(K4 - K3) ) * ( S0 * np.exp(-q * T) * (norm.cdf(d1_K3) - norm.cdf(d1_K4)) \
+                                          - K4 * np.exp(-r * T) * (norm.cdf(d2_K3) - norm.cdf(d2_K4) )
+                                        )
 
     return value
 
@@ -64,7 +72,7 @@ def calc_payoff(ST, K1, K2, K3, K4):
 
 def monteCarlo(S0, K1, K2, K3, K4, r, q, sigma, T, simulations, repetitions):
     print("--------------------------------------------------------------------------------")
-    print("A MonteCarlo Simution.")
+    print("MonteCarlo Simution:")
     if DEBUG:
         print("Number of simulations: {}, Number of repetitions: {}".format(simulations, repetitions))
         print("S0 = {}, K1 = {}, K2 = {}, K3 = {}, K4 = {}, r = {}, q = {}, sigma = {}, T = {}".format(S0, K1, K2, K3, K4, r, q, sigma, T))
@@ -101,8 +109,8 @@ def monteCarlo(S0, K1, K2, K3, K4, r, q, sigma, T, simulations, repetitions):
     option_mean = np.mean(option_results)
     option_std = np.std(option_results)
 
-    print("option: mean = {}, std = {}".format(option_mean, option_std))
-    print("0.95 C.I. of option value for MonteCarlo Simulations: [{}, {}]".format(option_mean - 2 * option_std, option_mean + 2 * option_std))
+    print("Option's mean = {}, std = {}".format(option_mean, option_std))
+    print("0.95 C.I. for the MonteCarlo Simulation: [{}, {}]".format(option_mean - 2 * option_std, option_mean + 2 * option_std))
 
 def testBS():
     C1, P1 = BS_call(S0, K1, r, q, sigma, T), BS_put(S0, K1, r, q, sigma, T)
@@ -125,25 +133,46 @@ def testBS():
 
     option = C1 - C2 - C3 + C4
 
+used_sys_arg = False
+
 if __name__ == "__main__":
     #S0, K1, K2, K3, K4, r, q, sigma, T = 50, 40, 50, 60, 70, 0.05, 0.08, 0.2, 1
     #S0, r, q, sigma, T, K1, K2, K3, K4= 50, 0.05, 0.08, 0.2, 1, 40, 50, 60, 70
-    _input = sys.argv[1:]
-    _input = [float(args) for args in _input]
-    S0, r, q, sigma, T, K1, K2, K3, K4 = _input
-    if DEBUG:
-        print(_input)
-
-    if len(_input) != 9:
-        print("usage: python hw1.py S0 r q sigma T K1 K2 K3 K4")
-        sys.exit()
-
-    C1, P1 = BS_call(S0, K1, r, q, sigma, T), BS_put(S0, K1, r, q, sigma, T)
-    C2, P2 = BS_call(S0, K2, r, q, sigma, T), BS_put(S0, K2, r, q, sigma, T)
-    C3, P3 = BS_call(S0, K3, r, q, sigma, T), BS_put(S0, K3, r, q, sigma, T)
-    C4, P4 = BS_call(S0, K4, r, q, sigma, T), BS_put(S0, K4, r, q, sigma, T)
     
+    if used_sys_arg:
+        _input = sys.argv[1:]
+        _input = [float(args) for args in _input]
+        S0, r, q, sigma, T, K1, K2, K3, K4 = _input
+        if DEBUG:
+            print(_input)
+
+        if len(_input) != 9:
+            print("usage: python hw1.py S0 r q sigma T K1 K2 K3 K4")
+            sys.exit()
+    
+    _input = input("Getting input...\n") 
+    
+    _input = _input.split(" ")
+    _input = [float(args) for args in _input]
+
+    S0, r, q, sigma, T, K1, K2, K3, K4 = _input
+    
+    print("S0    = {}".format(S0))
+    print("r     = {}".format(r))
+    print("q     = {}".format(q))
+    print("sigma = {}".format(sigma))
+    print("T     = {}".format(T))
+    print("K1    = {}".format(K1))
+    print("K2    = {}".format(K2))
+    print("K3    = {}".format(K3))
+    print("K4    = {}".format(K4))
+
     if DEBUG:
+        C1, P1 = BS_call(S0, K1, r, q, sigma, T), BS_put(S0, K1, r, q, sigma, T)
+        C2, P2 = BS_call(S0, K2, r, q, sigma, T), BS_put(S0, K2, r, q, sigma, T)
+        C3, P3 = BS_call(S0, K3, r, q, sigma, T), BS_put(S0, K3, r, q, sigma, T)
+        C4, P4 = BS_call(S0, K4, r, q, sigma, T), BS_put(S0, K4, r, q, sigma, T)
+    
         print("S0 = {}, K1 = {}, r = {}, q = {}, sigma = {}, T = {}".format(S0, K1, r, q, sigma, T))
         print("call: {}, put: {}".format(C1, P1))
 
@@ -156,11 +185,11 @@ if __name__ == "__main__":
         print("S0 = {}, K4 = {}, r = {}, q = {}, sigma = {}, T = {}".format(S0, K4, r, q, sigma, T))
         print("call: {}, put: {}".format(C4, P4))
 
-    value_BS = C1 - C2 - C3 + C4
-    value    = get_option_value(S0, r, q, sigma, T, K1, K2, K3, K4)
-
-    S_array = np.arange(50)
-
+        value_BS = C1 - C2 - C3 + C4
+        print("BS value = {}".format(value_BS))
+    
+    
+    value = get_option_value(S0, r, q, sigma, T, K1, K2, K3, K4)
     print("option value = {}".format(value))
 
     simulations = 10000
