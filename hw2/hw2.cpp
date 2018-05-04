@@ -198,7 +198,7 @@ double lnComb(int n , int i) { // nCi
 vector<double> CRRBinomial(double S0, double K, double r, double q, double sigma, double T, int n) { // n: # of periods
 	printf("\nCRRBinomial pricing.\n");
 	printf("Number of periods: %d\n", n);
-	printf("S0 = %f, K = %f, r = %f, q = %f, sigma = %f, T = %f\n", S0, K, r, q, sigma, T);
+	printf("S0 = %lf, K = %lf, r = %lf, q = %lf, sigma = %lf, T = %lf\n", S0, K, r, q, sigma, T);
 
 	long double u, d, p, dT;
 	double t = 0.0; // always starts at t = 0
@@ -271,7 +271,7 @@ vector<double> CRRBinomial(double S0, double K, double r, double q, double sigma
 vector<double> bonusCRRBinomial(double S0, double K, double r, double q, double sigma, double T, int n) {
 	printf("\nBonus CRRBinomial pricing.\n");
 	printf("Number of periods: %d\n", n);
-	printf("S0 = %f, K = %f, r = %f, q = %f, sigma = %f, T = %f\n", S0, K, r, q, sigma, T);
+	printf("S0 = %lf, K = %lf, r = %lf, q = %lf, sigma = %lf, T = %lf\n", S0, K, r, q, sigma, T);
 
 	long double u, d, p;
 	double dT;
@@ -327,10 +327,16 @@ int main(int argc, char const *argv[])
 {
 	//test();
 
-
+    /*
 	double S0 = 30, K = 29, r = 0.05, q = 0.025, sigma = 0.3, T = 1;
 	int simulations = 10000, repetitions = 20, n = 10;
-	
+	*/
+    double S0, K, r, q, sigma, T;
+    int simulations, repetitions, n;
+
+    fscanf(stdin, "%lf %lf %lf %lf %lf %lf %d %d %d", &S0, &K, &r, &q, &sigma, &T, &simulations, &repetitions, &n);
+
+
 	double callPrice = callBlackScholes(S0, K, r, q, sigma, T);
 	double putPrice = putBlackScholes(S0, K, r, q, sigma, T);
 	printf("Black-Scholes:\nCall = %f, Put = %f\n", callPrice, putPrice);
