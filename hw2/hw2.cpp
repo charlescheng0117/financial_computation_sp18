@@ -119,10 +119,10 @@ double std_vector(vector<double> v, double mean) {
 
 double monteCarlo(double S0, double K, double r, double q, 
 				  double sigma, double T, int simulations, int repetitions) {
-	printf("\nA MonteCarlo Simution.\n");
-	printf("Number of simulations: %d, Number of repetitions: %d\n", simulations, repetitions);
+    #ifdef DEBUG
+    printf("Number of simulations: %d, Number of repetitions: %d\n", simulations, repetitions);
 	printf("S0 = %f, K = %f, r = %f, q = %f, sigma = %f, T = %f\n", S0, K, r, q, sigma, T);
-
+    #endif
 	double mean_lnST = log(S0) + (r - q - pow(sigma, 2.0) / 2.0) * T; // mean of lnST
 	double sigma_lnST = sigma * sqrt(T); // sigma of lnST
 
@@ -196,9 +196,83 @@ double lnComb(int n , int i) { // nCi
 }
 
 vector<double> CRRBinomial(double S0, double K, double r, double q, double sigma, double T, int n) { // n: # of periods
-	printf("\nCRRBinomial pricing.\n");
-	printf("Number of periods: %d\n", n);
+    #ifdef DEBUG
+    printf("Number of periods: %d\n", n);
 	printf("S0 = %lf, K = %lf, r = %lf, q = %lf, sigma = %lf, T = %lf\n", S0, K, r, q, sigma, T);
+    #endif
+	
+    long double u, d, p, dT;
+	double t = 0.0; // always starts at t = 0
+
+	dT = T/n;
+	u = exp(sigma * sqrt(dT));
+	d = 1/u;
+	p = (exp((r-q) * dT) - d)/(u - d);
+	printf("p: %Lf, u: %Lf, d: %Lf, dT: %Lf\n", p, u, d, dT);
+
+	double ret_Call = 0.0, retPut = 0.0;
+	vector<double> results;
+
+	double tempSi[n + 1]; // compute Si
+	double tempCi_eu[n + 1][n + 1]; // compute european Ci
+	double tempPi_eu[n + 1][n + 1]; // compute european Pi
+	double tempCi_am[n + 1][n + 1]; // compute american Ci
+	double tempPi_am[n + 1][n + 1]; // compute american Pi
+
+	//cout << "Ci is: ";
+	for (int i = 0; i <= n; i += 1) { // leaf's values
+		double Si = S0 * pow(u, n - i) * pow(d, i); // Si at t = i if S0 goes up n - i times.
+		tempSi[i] = Si;
+		//cout << Si << " ";
+		double Ci = calcCall(Si, K), Pi = calcPut(Si, K);
+
+		tempCi_eu[n][i] = Ci;
+		tempPi_eu[n][i] = Pi;
+
+		tempCi_am[n][i] = Ci;
+		tempPi_am[n][i] = Pi;
+	}
+	//cout << '\n';
+
+	for (int i = n - 1; i >= 0; i -= 1) { // from n - 1, n - 2, ..., 0
+		for (int j = 0; j <= i; j += 1) { // c(i, j) = e^(-r dt) * (p * c(i + 1, j) + (1 - p) * c(i + 1, j + 1))
+			//double Si = p * temp[j] + (1 - p) * temp[j + 1];
+			//tempSi[j] = Si * exp(-r * T/n);
+			double Sij = S0 * pow(u, i - j) * pow(d, j);
+			double Cu_eu = tempCi_eu[i + 1][j], Cd_eu = tempCi_eu[i + 1][j + 1];
+			double Pu_eu = tempPi_eu[i + 1][j], Pd_eu = tempPi_eu[i + 1][j + 1];		
+
+			tempCi_eu[i][j] = exp(-r * dT) * (p * Cu_eu + (1 - p) * Cd_eu); 
+			tempPi_eu[i][j] = exp(-r * dT) * (p * Pu_eu + (1 - p) * Pd_eu);
+
+			double Cu_am = tempCi_am[i + 1][j], Cd_am = tempCi_am[i + 1][j + 1];
+			double Pu_am = tempPi_am[i + 1][j], Pd_am = tempPi_am[i + 1][j + 1];	
+
+			double rv_Ci_am = exp(-r * dT) * (p * Cu_am + (1 - p) * Cd_am);  // retension value of Call
+			double rv_Pi_am = exp(-r * dT) * (p * Pu_am + (1 - p) * Pd_am);  // retension value of Put
+
+			//printf("Exercise value of call: %f\n", calcCall(Sij, K));
+			//printf("Current value of call:  %f\n", tempCi_eu[j]);
+			tempCi_am[i][j] = max(rv_Ci_am, calcCall(Sij, K));
+			//printf("Value of American call:  %f\n", tempCi_am[j]);
+			tempPi_am[i][j] = max(rv_Pi_am, calcPut(Sij, K));
+		}
+	}
+	double C0_eu = tempCi_eu[0][0];
+	double P0_eu = tempPi_eu[0][0];
+	double C0_am = tempCi_am[0][0];
+	double P0_am = tempPi_am[0][0];
+
+	results.push_back(C0_eu), results.push_back(P0_eu);
+	results.push_back(C0_am), results.push_back(P0_am);
+
+	return results;
+}
+vector<double> oneColumnCRRBinomial(double S0, double K, double r, double q, double sigma, double T, int n) { // n: # of periods
+    #ifdef DEBUG
+    printf("Number of periods: %d\n", n);
+	printf("S0 = %lf, K = %lf, r = %lf, q = %lf, sigma = %lf, T = %lf\n", S0, K, r, q, sigma, T);
+    #endif
 
 	long double u, d, p, dT;
 	double t = 0.0; // always starts at t = 0
@@ -268,10 +342,11 @@ vector<double> CRRBinomial(double S0, double K, double r, double q, double sigma
 	return results;
 }
 
-vector<double> bonusCRRBinomial(double S0, double K, double r, double q, double sigma, double T, int n) {
-	printf("\nBonus CRRBinomial pricing.\n");
-	printf("Number of periods: %d\n", n);
+vector<double> combinatorialPricing(double S0, double K, double r, double q, double sigma, double T, int n) {
+    #ifdef DEBUG
+    printf("Number of periods: %d\n", n);
 	printf("S0 = %lf, K = %lf, r = %lf, q = %lf, sigma = %lf, T = %lf\n", S0, K, r, q, sigma, T);
+    #endif
 
 	long double u, d, p;
 	double dT;
@@ -311,11 +386,10 @@ vector<double> bonusCRRBinomial(double S0, double K, double r, double q, double 
 
 }
 
-double recursiveCRRBinomial(double S0, double K, double r, double q, double p, double u, double d, double i) {
-	if (i == 0) // leaf
-		return S0;
-	return 0.0;
+void print_line() {
+    printf("--------------------------------------------------------------------------------\n");
 }
+
 
 void testComb() {
 	printf("Testing bonus comb & fact.\n");
@@ -335,22 +409,51 @@ int main(int argc, char const *argv[])
     int simulations, repetitions, n;
 
     fscanf(stdin, "%lf %lf %lf %lf %lf %lf %d %d %d", &S0, &K, &r, &q, &sigma, &T, &simulations, &repetitions, &n);
+    
+    printf("Getting input... \n");
+    printf("S0          = %lf\n", S0);
+    printf("K           = %lf\n", K);
+    printf("r           = %lf\n", r);
+    printf("q           = %lf\n", q);
+    printf("sigma       = %lf\n", sigma);
+    printf("T           = %lf\n", T);
+    printf("simulations = %d\n", simulations);
+    printf("repetitions = %d\n", repetitions);
+    printf("n           = %d\n", n);
 
 
-	double callPrice = callBlackScholes(S0, K, r, q, sigma, T);
-	double putPrice = putBlackScholes(S0, K, r, q, sigma, T);
-	printf("Black-Scholes:\nCall = %f, Put = %f\n", callPrice, putPrice);
+    print_line();
+    // Basic requirement
+    printf("Basic requirement:\n");
+    printf("Black Scholes formulas: \n");
+    double call_price = callBlackScholes(S0, K, r, q, sigma, T);
+    double put_price  = putBlackScholes(S0, K, r, q, sigma, T);
+    printf("Call price = %f\nPut price  = %f\n", call_price, put_price);
 
-	vector<double> optionPrices = CRRBinomial(S0, K, r, q, sigma, T, n);
-	printf("European Call = %f, Put = %f\n", optionPrices[0], optionPrices[1]);
-	printf("American Call = %f, Put = %f\n", optionPrices[2], optionPrices[3]);
+    print_line();
+    printf("Monte Carlo simulation:\n");
+    monteCarlo(S0, K, r, q, sigma, T, simulations, repetitions); 
 
-	monteCarlo(S0, K, r, q, sigma, T, simulations, repetitions);
+    print_line();
+    printf("CRR binomial tree model:\n");
+    vector<double> optionPrices = CRRBinomial(S0, K, r, q, sigma, T, n);
+    //call_euro, put_euro, call_amer, put_amer = CRR_binomial(S0, K, r, q, sigma, T, n)
 
-	vector<double> bonusOptions = bonusCRRBinomial(S0, K, r, q, sigma, T, n);
-	printf("Call = %f, Put = %f\n", bonusOptions[0], bonusOptions[1]);
+    printf("Price for European call and put:\nCall = %f, Put = %f\n", optionPrices[0], optionPrices[1]);
+    printf("Price for American call and put:\nCall = %f, Put = %f\n", optionPrices[2], optionPrices[3]);
+
+    print_line();
+    printf("Bonus 1: CRR binomial tree with one column vector.\n");
+    optionPrices = oneColumnCRRBinomial(S0, K, r, q, sigma, T, n);
+
+    printf("Price for European call and put:\nCall = %f, Put = %f\n", optionPrices[0], optionPrices[1]);
+    printf("Price for American call and put:\nCall = %f, Put = %f\n", optionPrices[2], optionPrices[3]);
+
+    print_line();
+    printf("Bonus 2: combinatorial method to price European options\n");
+    vector<double> bonusOptions = combinatorialPricing(S0, K, r, q, sigma, T, n); 
+	printf("Call = %f\nPut = %f\n", bonusOptions[0], bonusOptions[1]);
 	
-	//printf("\n!!!Should add American Option Price!!!\n");
 
 	//testComb();
 
