@@ -5,7 +5,6 @@ from scipy.stats import norm
 
 from hw2_util import *
 
-DEBUG = False
 
 def monte_carlo(S0, K, r, q, sigma, T, simulations, repetitions):
     
@@ -15,7 +14,7 @@ def monte_carlo(S0, K, r, q, sigma, T, simulations, repetitions):
 
     # mean, sigma of lnST
     mean_lnST = np.log(S0) + (r - q - np.power(sigma, 2.0) / 2.0) * T 
-    sigma_lnST = sigma * np.np.np.sqrt(T)
+    sigma_lnST = sigma * np.sqrt(T)
     
     if DEBUG:
         print("mean_lnST = {}, sigma_lnST = {}".format(mean_lnST, sigma_lnST))
@@ -28,7 +27,8 @@ def monte_carlo(S0, K, r, q, sigma, T, simulations, repetitions):
         # draw samples from N(lnST, sigmaST)
         samples = np.random.normal(mean_lnST, sigma_lnST, simulations)
         
-        print("samples: {}".format(samples[:5]))
+        if DEBUG:
+            print("samples: {}".format(samples[:5]))
         
         call_option_vals = []
         put_option_vals = []
@@ -269,7 +269,7 @@ if __name__ == "__main__":
     print("Black Scholes formulas: ")
     call_price = Black_Scholes_call(S0, K, r, q, sigma, T)
     put_price  = Black_Scholes_put(S0, K, r, q, sigma, T)
-    print("Call price = {}\nPut price  = {}".format(call_price, put_price))
+    print("Call price = {0:.10f}\nPut price  = {1:.10f}".format(call_price, put_price))
 
     print_line()
     print("Monte Carlo simulation:\n")
@@ -279,13 +279,13 @@ if __name__ == "__main__":
     print("CRR binomial tree model:\n")
     call_euro, put_euro, call_amer, put_amer = CRR_binomial(S0, K, r, q, sigma, T, n)
 
-    print("Price for European call and put:\nCall = {}, Put = {}\n".format(call_euro, put_euro))
-    print("Price for American call and put:\nCall = {}, Put = {}".format(call_amer, put_amer))
+    print("Price for European call and put:\nCall = {0:.10f}, Put = {1:.10f}\n".format(call_euro, put_euro))
+    print("Price for American call and put:\nCall = {0:.10f}, Put = {1:.10f}".format(call_amer, put_amer))
 
     print_line()
     print("Bonus 1: CRR binomial tree with one column vector.\n")
     call_euro, put_euro, call_amer, put_amer = one_column_CRR_binomial(S0, K, r, q, sigma, T, n)
 
-    print("Price for European call and put:\nCall = {}, Put = {}\n".format(call_euro, put_euro))
-    print("Price for American call and put:\nCall = {}, Put = {}".format(call_amer, put_amer))
+    print("Price for European call and put:\nCall = {0:.10f}, Put = {1:.10f}\n".format(call_euro, put_euro))
+    print("Price for American call and put:\nCall = {0:.10f}, Put = {1:.10f}".format(call_amer, put_amer))
 

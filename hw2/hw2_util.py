@@ -3,6 +3,8 @@ import sys
 import os
 from scipy.stats import norm
 
+DEBUG = False
+
 def print_line():
     print("--------------------------------------------------------------------------------")
 

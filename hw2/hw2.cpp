@@ -91,11 +91,11 @@ int test() {
 }
 
 double calcCall(double ST, double K) {
-	return max(ST - K, 0.0);
+	return max(ST - K, (double) 0.0);
 }
 
 double calcPut(double ST, double K) {
-	return max(K - ST, 0.0);
+	return max(K - ST, (double) 0.0);
 }
 
 double mean_vector(vector<double> v) {
@@ -201,14 +201,14 @@ vector<double> CRRBinomial(double S0, double K, double r, double q, double sigma
 	printf("S0 = %lf, K = %lf, r = %lf, q = %lf, sigma = %lf, T = %lf\n", S0, K, r, q, sigma, T);
     #endif
 	
-    long double u, d, p, dT;
+    double u, d, p, dT;
 	double t = 0.0; // always starts at t = 0
 
 	dT = T/n;
 	u = exp(sigma * sqrt(dT));
 	d = 1/u;
 	p = (exp((r-q) * dT) - d)/(u - d);
-	printf("p: %Lf, u: %Lf, d: %Lf, dT: %Lf\n", p, u, d, dT);
+	printf("p: %lf, u: %lf, d: %lf, dT: %lf\n", p, u, d, dT);
 
 	double ret_Call = 0.0, retPut = 0.0;
 	vector<double> results;
@@ -274,14 +274,14 @@ vector<double> oneColumnCRRBinomial(double S0, double K, double r, double q, dou
 	printf("S0 = %lf, K = %lf, r = %lf, q = %lf, sigma = %lf, T = %lf\n", S0, K, r, q, sigma, T);
     #endif
 
-	long double u, d, p, dT;
+	double u, d, p, dT;
 	double t = 0.0; // always starts at t = 0
 
 	dT = T/n;
 	u = exp(sigma * sqrt(dT));
 	d = 1/u;
 	p = (exp((r-q) * dT) - d)/(u - d);
-	printf("p: %Lf, u: %Lf, d: %Lf, dT: %Lf\n", p, u, d, dT);
+	printf("p: %lf, u: %lf, d: %lf, dT: %lf\n", p, u, d, dT);
 
 	double ret_Call = 0.0, retPut = 0.0;
 	vector<double> results;
@@ -348,7 +348,7 @@ vector<double> combinatorialPricing(double S0, double K, double r, double q, dou
 	printf("S0 = %lf, K = %lf, r = %lf, q = %lf, sigma = %lf, T = %lf\n", S0, K, r, q, sigma, T);
     #endif
 
-	long double u, d, p;
+	double u, d, p;
 	double dT;
 	double t = 0.0; // always starts at t = 0
 
@@ -434,20 +434,25 @@ int main(int argc, char const *argv[])
     printf("Monte Carlo simulation:\n");
     monteCarlo(S0, K, r, q, sigma, T, simulations, repetitions); 
 
-    print_line();
-    printf("CRR binomial tree model:\n");
-    vector<double> optionPrices = CRRBinomial(S0, K, r, q, sigma, T, n);
-    //call_euro, put_euro, call_amer, put_amer = CRR_binomial(S0, K, r, q, sigma, T, n)
+    vector<double> optionPrices;
+    if (n <= 500) {
+        print_line();
+        printf("CRR binomial tree model:\n");
+        optionPrices = CRRBinomial(S0, K, r, q, sigma, T, n);
+        //call_euro, put_euro, call_amer, put_amer = CRR_binomial(S0, K, r, q, sigma, T, n)
 
-    printf("Price for European call and put:\nCall = %f, Put = %f\n", optionPrices[0], optionPrices[1]);
-    printf("Price for American call and put:\nCall = %f, Put = %f\n", optionPrices[2], optionPrices[3]);
+        printf("Price for European call and put:\nCall = %f, Put = %f\n", optionPrices[0], optionPrices[1]);
+        printf("Price for American call and put:\nCall = %f, Put = %f\n", optionPrices[2], optionPrices[3]);
+    }
 
-    print_line();
-    printf("Bonus 1: CRR binomial tree with one column vector.\n");
-    optionPrices = oneColumnCRRBinomial(S0, K, r, q, sigma, T, n);
+    if (n <= 500) {
+        print_line();
+        printf("Bonus 1: CRR binomial tree with one column vector.\n");
+        optionPrices = oneColumnCRRBinomial(S0, K, r, q, sigma, T, n);
 
-    printf("Price for European call and put:\nCall = %f, Put = %f\n", optionPrices[0], optionPrices[1]);
-    printf("Price for American call and put:\nCall = %f, Put = %f\n", optionPrices[2], optionPrices[3]);
+        printf("Price for European call and put:\nCall = %f, Put = %f\n", optionPrices[0], optionPrices[1]);
+        printf("Price for American call and put:\nCall = %f, Put = %f\n", optionPrices[2], optionPrices[3]);
+    }
 
     print_line();
     printf("Bonus 2: combinatorial method to price European options\n");

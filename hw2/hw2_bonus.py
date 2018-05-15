@@ -3,7 +3,10 @@ import sys
 import os
 from scipy.stats import norm
 
+sys.setrecursionlimit(6000)
+
 from hw2_util import *
+
 
 def combinatorial_pricing(S0, K, r, q, sigma, T, n):
     """ Implementation of bonus 2."""
@@ -73,9 +76,5 @@ if __name__ == "__main__":
     print_line()
     print("Bonus 2: combinatorial method to price European options\n")
     bonus_call, bonus_put = combinatorial_pricing(S0, K, r, q, sigma, T, n) 
-    print("Call price = {}\nPut price  = {}".format(bonus_call, bonus_put))
-
-
-
-
+    print("Call price = {0:.10f}\nPut price  = {1:.10f}".format(bonus_call, bonus_put))
 
