@@ -10,7 +10,9 @@
 #define e exp(1)
 #define PI M_PI
 
+
 using namespace std;
+vector<double> ln_fac;
 
 void displayVector(vector<double> v) {
 	for (int i = 0; i < v.size(); i += 1) {
@@ -190,9 +192,10 @@ double lnFactorial(int n) { // return n!
 }
 
 double lnComb(int n , int i) { // nCi
-	if (n < i)
-		return -1;  // bug
-	return lnFactorial(n) - (lnFactorial(i) + lnFactorial(n - i));
+	//if (n < i)
+	//	return -1;  // bug
+	//return lnFactorial(n) - (lnFactorial(i) + lnFactorial(n - i));
+    return ln_fac[n] - ln_fac[i] - ln_fac[n - i];
 }
 
 vector<double> CRRBinomial(double S0, double K, double r, double q, double sigma, double T, int n) { // n: # of periods
@@ -421,6 +424,15 @@ int main(int argc, char const *argv[])
     printf("repetitions = %d\n", repetitions);
     printf("n           = %d\n", n);
 
+    // preprocess ln_fac
+    ln_fac = vector<double>(n + 1);
+
+    ln_fac[0] = ln_fac[1] = 0.0;
+
+    for (int i = 2; i <= n; ++i) {
+        ln_fac[i] = ln_fac[i - 1] + log(i);
+        //printf("%f ", ln_fac[i]);
+    }
 
     print_line();
     // Basic requirement

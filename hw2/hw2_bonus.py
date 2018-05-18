@@ -3,10 +3,12 @@ import sys
 import os
 from scipy.stats import norm
 
-sys.setrecursionlimit(6000)
+sys.setrecursionlimit(20000)
 
 from hw2_util import *
 
+def my_log_comb(n, i):
+    return log_fac[n] - log_fac[i] - log_fac[n - i]
 
 def combinatorial_pricing(S0, K, r, q, sigma, T, n):
     """ Implementation of bonus 2."""
@@ -36,10 +38,12 @@ def combinatorial_pricing(S0, K, r, q, sigma, T, n):
         if call_payoff_i != 0:
                 #print("ln_combination is: \n".format(ln_combination(n, i))
                 # S0 * u ** (n - i * d ** i
-                ret_call += np.exp( ln_combination(n, i) + (n - i) * np.log(p) + i * np.log(1 - p) + np.log(call_payoff_i) )
+                #ret_call += np.exp( ln_combination(n, i) + (n - i) * np.log(p) + i * np.log(1 - p) + np.log(call_payoff_i) )
+                ret_call += np.exp( my_log_comb(n, i) + (n - i) * np.log(p) + i * np.log(1 - p) + np.log(call_payoff_i) )
+                
                 #print("ret_call: \n".format(ret_call)
         if put_payoff_i != 0:
-                ret_put  += np.exp( ln_combination(n, i) + (n - i) * np.log(p) + i * np.log(1 - p) + np.log(put_payoff_i)  ) 
+                ret_put  += np.exp( my_log_comb(n, i) + (n - i) * np.log(p) + i * np.log(1 - p) + np.log(put_payoff_i)  ) 
         #print("ret_call now is: , ret_put now is: \n".format(ret_call, ret_put)
     
 
@@ -47,6 +51,8 @@ def combinatorial_pricing(S0, K, r, q, sigma, T, n):
     P0 = ret_put * np.exp(-r * T)
 
     return (C0, P0)
+
+
 
 
 if __name__ == "__main__":
@@ -61,6 +67,15 @@ if __name__ == "__main__":
     simulations = int(simulations)
     repetitions = int(repetitions)
     n = int(n)
+
+    log_fac = [1]
+    
+    tmp_log = 0
+    for i in range(1, n + 1):
+        tmp_log += np.log(i)
+        log_fac.append(tmp_log)
+
+
 
     print("S0          = {}".format(S0))
     print("K           = {}".format(K))
