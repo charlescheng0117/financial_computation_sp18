@@ -45,12 +45,6 @@ def get_option_value(S0, r, q, sigma, T, K1, K2, K3, K4):
     d1_K3, d2_K3 = calc_d1(S0, K3, r, q, sigma, T), calc_d2(S0, K3, r, q, sigma, T)
     d1_K4, d2_K4 = calc_d1(S0, K4, r, q, sigma, T), calc_d2(S0, K4, r, q, sigma, T)
     
-    """
-    value = S0 * np.exp(-q * T) * norm.cdf(d1_K1) - K1 * np.exp(-r * T) * norm.cdf(d2_K1) \
-            - S0 * np.exp(-q * T) * norm.cdf(d1_K2) + K2 * np.exp(-r * T) * norm.cdf(d2_K2) \
-            - ( (K2 - K1)/(K4 - K3) ) * S0 * np.exp(-q * T) * norm.cdf(d1_K3) + K3 * np.exp(-r * T) * norm.cdf(d2_K3) \
-            + ( (K2 - K1)/(K4 - K3) ) * S0 * np.exp(-q * T) * norm.cdf(d1_K4) - K4 * np.exp(-r * T) * norm.cdf(d2_K4)
-    """
     value = S0 * np.exp(-q * T) * ( norm.cdf(d1_K1) - norm.cdf(d1_K2) ) \
             - K1 * np.exp(-r * T) * ( norm.cdf(d2_K1) - norm.cdf(d2_K2) ) \
             + (K2 - K1) * np.exp(-r * T) *  ( norm.cdf(d2_K2) - norm.cdf(d2_K3) ) \
@@ -70,9 +64,9 @@ def calc_payoff(ST, K1, K2, K3, K4):
     else: # K3 < ST < K4
         return ( (K2 - K1)/(K4 - K3) ) * (K4 - ST)
 
-def monteCarlo(S0, K1, K2, K3, K4, r, q, sigma, T, simulations, repetitions):
+def monte_carlo(S0, K1, K2, K3, K4, r, q, sigma, T, simulations, repetitions):
     print("--------------------------------------------------------------------------------")
-    print("MonteCarlo Simution:")
+    print("Monte Carlo Simution:")
     if DEBUG:
         print("Number of simulations: {}, Number of repetitions: {}".format(simulations, repetitions))
         print("S0 = {}, K1 = {}, K2 = {}, K3 = {}, K4 = {}, r = {}, q = {}, sigma = {}, T = {}".format(S0, K1, K2, K3, K4, r, q, sigma, T))
@@ -88,8 +82,6 @@ def monteCarlo(S0, K1, K2, K3, K4, r, q, sigma, T, simulations, repetitions):
 
 
     option_results = []
-    # set random seed    
-    #generator.seed(time(NULL)) // reset seed
     
     for i in range(repetitions):
         # draw samples from N(lnST, sigmaST)
@@ -195,7 +187,7 @@ if __name__ == "__main__":
     simulations = 10000
     repetitions = 20
 
-    monteCarlo(S0, K1, K2, K3, K4, r, q, sigma, T, simulations, repetitions)
+    monte_carlo(S0, K1, K2, K3, K4, r, q, sigma, T, simulations, repetitions)
 
 
 
