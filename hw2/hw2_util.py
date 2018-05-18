@@ -59,3 +59,4 @@ def ln_combination(n, i):
     if (n < i):
         return -1
     return ln_factorial(n) - (ln_factorial(i) + ln_factorial(n - i))
+
