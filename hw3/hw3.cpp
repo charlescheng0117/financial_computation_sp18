@@ -13,19 +13,6 @@
 
 using namespace std;
 
-/*
-class Matrix {
-	public:
-		int m, n;
-		Matrix(int n) {
-			this->m = n, this->n = n;
-
-		}
-		Matrix(int m, int n) {
-
-		}
-}*/
-
 struct rainbowPair {
 	double payoff; // max payoff
 	int i;	   // corresponding index i
@@ -131,22 +118,6 @@ vector< vector<double> > initMat(int M, int N, double** values) { // initialize 
 	return ret;
 }
 
-/*
-void initMatrix(vector< vector<double> >& mat, int M, int N) { // initialize a matrix: M x N
-	vector< vector<double> > mat(M);
-
-	for (int i = 0; i < M; i += 1) {
-		vector<double> v(N);
-		mat.push_back(v);
-	}
-	//return ret;
-}*/
-
-/*
-template <typename ...ArgsT>
-void pass_me_floats (ArgsT ...floats) {
-    pass_me_floats_impl ({floats...});
-}*/
 
 double sumSquareOfColPrevEle(vector< vector<double> >& mat, int i) { 
 	// return the sum of square of ith columns' element previous to entry i
@@ -166,9 +137,6 @@ double sumProdOfTwoColPrevEle(vector< vector<double> >& mat, int i, int j) {
 	return ret;
 }
 
-/*void hw3(double K, double r, double T, int simulations, int repetitions, int n, S10, S20, ..., Sn0, q1,
-q2,..., qn, σ1, σ2,..., σn, ρij)*/
-
 void CholeskyDecomposition(vector< vector<double> >& cov_matrix, vector< vector<double> >& mat_A) {
 	// step 1
 	int n = cov_matrix.size();
@@ -184,12 +152,16 @@ void CholeskyDecomposition(vector< vector<double> >& cov_matrix, vector< vector<
 	for (int i = 1; i < n - 1; i += 1) { 
 
 		// step 2: aii = sqrt(cii - \sum_{k = 1}^{i - 1} a_{k,i}^2)
-		//printf("sum_{k = 1}^{i - 1} a_{k, %d}^2 = %f\n", i, sumSquareOfColPrevEle(mat_A, i) );
+        #ifdef DEBUG
+        printf("sum_{k = 1}^{i - 1} a_{k, %d}^2 = %f\n", i, sumSquareOfColPrevEle(mat_A, i) );
+        #endif
 		mat_A[i][i] = sqrt(cov_matrix[i][i] - sumSquareOfColPrevEle(mat_A, i) );
 
 		// step 3: aij = 1/aii (cij - \sum_{k = 1}^{i - 1} a_{k, i} * a_{k, j}), j = i + 1, ..., n
 		for (int j = i + 1; j < n; j += 1) {
-			//printf("sum_{k = 1}^{i - 1} a_{k, %d} * a_{k, %d} = %f\n", i, j, sumProdOfTwoColPrevEle(mat_A, i, j));
+            #ifdef DEBUG
+			printf("sum_{k = 1}^{i - 1} a_{k, %d} * a_{k, %d} = %f\n", i, j, sumProdOfTwoColPrevEle(mat_A, i, j));
+            #endif
 			mat_A[i][j] = 1 / mat_A[i][i] * ( cov_matrix[i][j] - sumProdOfTwoColPrevEle(mat_A, i, j) );
 		}
 	}
@@ -254,10 +226,11 @@ void moment_match(vector<double>& z) {
 double monteCarloRainbow(double K, double r, double T, int simulations, int repetitions, int n,
 						 vector<double>& S0_vals, vector<double>& qi_vals, vector<double>& sigma_vals,
 						 vector< vector<double> >& mat_A) {
+	printf("Monte Carlo Simulation - Basic Requirement\n");
+	printf("Number of simulations: %d\nNumber of repetitions: %d\nPeriods: %d\n", simulations, repetitions, n);
+	printf("K: %f\nr: %f\nT: %f\n", K, r, T);
 
-	printf("\nA MonteCarlo Simution of a Rainbow.\n");
-	printf("Number of simulations: %d, Number of repetitions: %d, Periods: %d\n", simulations, repetitions, n);
-	printf("K = %f, r = %f, T = %f\n", K, r, T);
+    #ifdef DEBUG
 	printf("S0_vals are \n");
 	display(S0_vals);
 
@@ -266,6 +239,7 @@ double monteCarloRainbow(double K, double r, double T, int simulations, int repe
 
 	printf("sigma_vals are \n");
 	display(sigma_vals);
+    #endif
 
 	// sampling z1, z2, ..., zn from iid standard normal.
 	default_random_engine generator;
@@ -323,10 +297,11 @@ double monteCarloRainbow(double K, double r, double T, int simulations, int repe
 
 	double rainbow_val_mean = mean_vector(rainbowResults);
 	double rainbow_val_std = std_vector(rainbowResults, rainbow_val_mean);
-
+    
+    printf("------------------------------\n");
+	printf("### Answer for Basic Requirement ###\n");
 	printf("mean: %f, std: %f\n", rainbow_val_mean, rainbow_val_std);
-
-	printf("0.95 C.I. of a rainbow option value by a MonteCarlo simulation: [%f, %f]\n", rainbow_val_mean - 2 * rainbow_val_std, rainbow_val_mean + 2 * rainbow_val_std);
+	printf("0.95 CI: [%f, %f]\n", rainbow_val_mean - 2 * rainbow_val_std, rainbow_val_mean + 2 * rainbow_val_std);
 
 	return 0;
 }
@@ -335,11 +310,13 @@ double bonus_monteCarloRainbow(double K, double r, double T, int simulations, in
 						 vector<double>& S0_vals, vector<double>& qi_vals, vector<double>& sigma_vals,
 						 vector< vector<double> >& mat_A) {
 
-	printf("\nBonus1\n");
-	printf("A MonteCarlo Simution of a Rainbow.\n");
-	printf("Number of simulations: %d, Number of repetitions: %d, Periods: %d\n", simulations, repetitions, n);
-	printf("K = %f, r = %f, T = %f\n", K, r, T);
-	printf("S0_vals are \n");
+    // Bonus 1
+	printf("Monte Carlo Simulation - Bonus 1\n");
+	printf("Number of simulations: %d\nNumber of repetitions: %d\nPeriods: %d\n", simulations, repetitions, n);
+	printf("K: %f\nr: %f\nT: %f\n", K, r, T);
+    
+    #ifdef DEBUG    
+    printf("S0_vals are \n");
 	display(S0_vals);
 
 	printf("qi_vals are \n");
@@ -347,6 +324,7 @@ double bonus_monteCarloRainbow(double K, double r, double T, int simulations, in
 
 	printf("sigma_vals are \n");
 	display(sigma_vals);
+    #endif
 
 	// sampling z1, z2, ..., zn from iid standard normal.
 	default_random_engine generator;
@@ -437,69 +415,20 @@ double bonus_monteCarloRainbow(double K, double r, double T, int simulations, in
 		rainbowResults.push_back(expected_rainbow_val);
 	}
 	
-
+    #ifdef DEBUG
 	printf("rainbowResults: \n");
 	display(rainbowResults);
+    #endif
 
 	double rainbow_val_mean = mean_vector(rainbowResults);
 	double rainbow_val_std = std_vector(rainbowResults, rainbow_val_mean);
 
-	printf("Answer for Bonus 1.\n");
+    printf("------------------------------\n");
+	printf("### Answer for Bonus 1 ###\n");
 	printf("mean: %f, std: %f\n", rainbow_val_mean, rainbow_val_std);
-	printf("0.95 C.I. of a rainbow option value by a MonteCarlo simulation: [%f, %f]\n", rainbow_val_mean - 2 * rainbow_val_std, rainbow_val_mean + 2 * rainbow_val_std);
+	printf("0.95 CI: [%f, %f]\n", rainbow_val_mean - 2 * rainbow_val_std, rainbow_val_mean + 2 * rainbow_val_std);
 
 	return 0;
-}
-
-
-void test() {
-	/* code */
-	double m1_r1[] = {1, 2, 3, 4};
-	double m1_r2[] = {4, 5, 6, 9};
-	double m1_r3[] = {7, 8, 9, -10};
-	double m1_r4[] = {6, -1, 5, 7};
-
-	double m2_r1[] = {-1, 0};
-	double m2_r2[] = { 0, 6};
-	double m2_r3[] = { 5, 3};
-	
-	/*
-	double doubles_vv1[][] = {
-		{1, 2},
-		{3, 4}
-	};*/
-
-	//vector<double> v1(doubles_v1, doubles_v1 + sizeof(doubles_v1) / sizeof(double) );
-	vector<double> m1_vec_r1 = initVec(m1_r1, 4);
-	vector<double> m1_vec_r2 = initVec(m1_r2, 4);
-	vector<double> m1_vec_r3 = initVec(m1_r3, 4);
-	vector<double> m1_vec_r4 = initVec(m1_r4, 4);
-
-	vector<double> m2_vec_r1 = initVec(m2_r1, 2);
-	vector<double> m2_vec_r2 = initVec(m2_r2, 2);
-	vector<double> m2_vec_r3 = initVec(m2_r3, 2);
-
-	vector< vector<double> > mat1(4), mat2(3), mat3;
-	mat1[0] = m1_vec_r1, mat1[1] = m1_vec_r2, mat1[2] = m1_vec_r3, mat1[3] = m1_vec_r4;
-	mat2[0] = m2_vec_r1, mat2[1] = m2_vec_r2, mat2[2] = m2_vec_r3;
-
-	//display(mat1);
-	//mat3 = dot(mat1, mat2);
-	//display(mat3);
-	/*
-	cout << sumSquareOfColPrevEle(mat1, 1) << '\n';
-	cout << sumSquareOfColPrevEle(mat1, 2) << '\n';
-	cout << sumSquareOfColPrevEle(mat1, 3) << '\n';
-	cout << sumProdOfTwoColPrevEle(mat1, 2, 3) << '\n';
-	cout << sumProdOfTwoColPrevEle(mat1, 1, 3) << '\n';
-	*/
-	double vec[] = {1, 2, 3};
-	vector<double> _vec = initVec(vec, 3);
-	vector<double> result;
-	result = dot(_vec, mat2);
-	display(_vec);
-	display(mat2);
-	display(result);
 }
 
 int main(int argc, char const *argv[]) {
@@ -531,17 +460,20 @@ int main(int argc, char const *argv[]) {
 		mat_A[i] = v3;
 	}
 
-	//cout <<  K << r << T << simulations << repetitions << n << '\n';
-	printf("K: %2f, r: %2f, T: %2f, simulations: %2d, repetitions: %2d, n: %2d\n", K, r, T, simulations, repetitions, n);
+	//printf("K: %2f\nr: %2f\nT: %2f\nNumber of simulations: %2d\nNumer of repetitions: %2d\nn: %2d\n", K, r, T, simulations, repetitions, n);
 	double si;
 	for (int i = 0; i < n; i += 1) {
 		in >> si;
 		Si_values.push_back(si);
 	}
+    #ifdef DEBUG
 	display(Si_values);
-
+    #endif
+    
+    #ifdef DEBUG
 	rainbowPair pairTest = calcPayoffRainbow(Si_values, K);
-	printf("payoff of the rainbow option: %f\n", pairTest.payoff);
+	printf("Payoff of the rainbow option: %f\n", pairTest.payoff);
+    #endif
 
 	double qi;
 	for (int i = 0; i < n; i += 1) {
@@ -555,7 +487,10 @@ int main(int argc, char const *argv[]) {
 		//printf("%f ", sigma_i);
 		sigma_values.push_back(sigma_i);
 	}
+
+    #ifdef DEBUG
 	display(sigma_values);
+    #endif
 
 	//printf("sigma_i is: %f ", sigma_i);
 
@@ -570,17 +505,21 @@ int main(int argc, char const *argv[]) {
 	}
 
 	CholeskyDecomposition(cov_matrix, mat_A);
-	
-	//monteCarloRainbow(K, r, T, simulations, repetitions, n, Si_values, qi_values, sigma_values, mat_A);
+    
+    printf("----------Basic Requirement----------\n");
+	monteCarloRainbow(K, r, T, simulations, repetitions, n, Si_values, qi_values, sigma_values, mat_A);
+    
+    printf("----------     Bonus 1     ----------\n");
 	bonus_monteCarloRainbow(K, r, T, simulations, repetitions, n, Si_values, qi_values, sigma_values, mat_A);
 	
-	
+    #ifdef DEBUG	
 	cout << "rho_matrix\n";
 	display(rho_matrix);
 	cout << "cov_matrix\n"; 
 	display(cov_matrix);
 	cout << "matrix_A\n";
 	display(mat_A);
+    #endif
 	
 	
 	return 0;

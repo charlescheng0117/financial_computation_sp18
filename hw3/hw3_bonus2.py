@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.linalg as la
 import math
+import sys
 
 def sample_mat_Z(simulations, n):
 	mat_Z = []
@@ -117,106 +118,116 @@ def calcPayoffRainbow(Si_values, K):
 
 
 if __name__ == '__main__':
-	file_name = "hw3_test2.txt"
-	inputs = list(open(file_name))
+    if len(sys.argv) != 2:
+        print("Usage: python3 hw3_bonus2.py <input_file>")
+        sys.exit()
+    file_name = sys.argv[1]
+    inputs = list(open(file_name))
 
-	line1 = [float(x) for x in inputs[0].split()]
-	K, r, T, simulations, repetitions, n = line1
-	simulations, repetitions, n = int(simulations), int(repetitions), int(n)
-	print("K = {}, r = {}, T = {}, simulations = {}, repetitions = {}, n = {}".format(K, r, T, simulations, repetitions, n))
+    line1 = [float(x) for x in inputs[0].split()]
+    K, r, T, simulations, repetitions, n = line1
+    simulations, repetitions, n = int(simulations), int(repetitions), int(n)
 
-	line2 = [float(x) for x in inputs[1].split()]  # S0_vals
-	S0_vals = np.array(line2)
-	print("S0_vals = {}".format(S0_vals))
+    line2 = [float(x) for x in inputs[1].split()]  # S0_vals
+    S0_vals = np.array(line2)
 
-	line3 = [float(x) for x in inputs[2].split()]  # qi_vals
-	qi_vals = np.array(line3)
-	print("qi_vals = {}".format(qi_vals))
+    line3 = [float(x) for x in inputs[2].split()]  # qi_vals
+    qi_vals = np.array(line3)
 
-	line4 = [float(x) for x in inputs[3].split()]  # sigma_vals
-	sigma_vals = np.array(line4)
-	print("sigma_vals = {}".format(sigma_vals))
+    line4 = [float(x) for x in inputs[3].split()]  # sigma_vals
+    sigma_vals = np.array(line4)
 
-	rho_mat = []
-	for i in range(4, len(inputs)):				   # rho_matrix
-		line = [float(x) for x in inputs[i].split()]
-		rho_mat.append(line)
-	rho_mat = np.array(rho_mat)
-	print("rho_mat = \n{}".format(rho_mat))
+    rho_mat = []
+    for i in range(4, len(inputs)):				   # rho_matrix
+            line = [float(x) for x in inputs[i].split()]
+            rho_mat.append(line)
+    rho_mat = np.array(rho_mat)
 
-	cov_mat = [ [ 0.0 for i in range(n) ] for j in range(n) ]
-	for i in range(n):
-		for j in range(n):
-			cov_mat[i][j] = rho_mat[i][j] * sigma_vals[i] * sigma_vals[j]
-	cov_mat = np.array(cov_mat)
-	print("cov_mat = \n{}".format(cov_mat))
+    cov_mat = [ [ 0.0 for i in range(n) ] for j in range(n) ]
+    for i in range(n):
+            for j in range(n):
+                    cov_mat[i][j] = rho_mat[i][j] * sigma_vals[i] * sigma_vals[j]
+    cov_mat = np.array(cov_mat)
 
-	mat_A = CholeskyDecomp(cov_mat)
-	print("mat_A = \n{}".format(mat_A))
+    mat_A = CholeskyDecomp(cov_mat)
+    
+    DEBUG = False
+    print("----------     Bonus 2     ----------")
+    print("Monte Carlo Simulation - Bonus 2")
+    print("Number of Simulations: {}\nNumber of Repetitions: {}\nPeriods: {}".format(simulations, repetitions, n))
+    print("K: {}\nr: {}\nT: {}".format(K, r, T))
+    if DEBUG:
+        print("S0_vals = {}".format(S0_vals))
+        print("qi_vals = {}".format(qi_vals))
+        print("sigma_vals = {}".format(sigma_vals))
+        print("rho_mat = \n{}".format(rho_mat))
+        print("cov_mat = \n{}".format(cov_mat))
+        print("mat_A = \n{}".format(mat_A))
 
-	rainbow_results = []
+    rainbow_results = []
 
-	for rep in range(repetitions):
-		mat_Z = sample_mat_Z(simulations, n)     # step 1 of new method
-		#print("mat_Z = \n{}".format(mat_Z))
-		#print("mat_Z^T = \n{}".format(np.transpose(mat_Z)))
+    for rep in range(repetitions):
+            mat_Z = sample_mat_Z(simulations, n)     # step 1 of new method
+            #print("mat_Z = \n{}".format(mat_Z))
+            #print("mat_Z^T = \n{}".format(np.transpose(mat_Z)))
 
-		mat_Z_tilde = calc_mat_Z_tilde(mat_Z)    # step 2 of new method
-		#print("mat_Z_tilde = \n{}".format(mat_Z_tilde))
-		mat_C = np.cov(mat_Z_tilde.T)
-		#print("mat_C = \n{}".format(mat_C))
+            mat_Z_tilde = calc_mat_Z_tilde(mat_Z)    # step 2 of new method
+            #print("mat_Z_tilde = \n{}".format(mat_Z_tilde))
+            mat_C = np.cov(mat_Z_tilde.T)
+            #print("mat_C = \n{}".format(mat_C))
 
-		mat_A_tilde = CholeskyDecomp(mat_C)		 # step 3 of new method
-		#print("mat_A_tilde = \n{}".format(mat_A_tilde))
-		inv_mat_A_tilde = la.inv(mat_A_tilde)
+            mat_A_tilde = CholeskyDecomp(mat_C)		 # step 3 of new method
+            #print("mat_A_tilde = \n{}".format(mat_A_tilde))
+            inv_mat_A_tilde = la.inv(mat_A_tilde)
 
-		mat_Z_prime = np.dot(mat_Z_tilde, inv_mat_A_tilde)
-		#print("mat_Z_prime = \n{}".format(mat_Z_prime))
+            mat_Z_prime = np.dot(mat_Z_tilde, inv_mat_A_tilde)
+            #print("mat_Z_prime = \n{}".format(mat_Z_prime))
 
-		rainbow_vals = []
-		for i in range(simulations):
-			r_vals = np.dot(mat_Z_prime[i], mat_A)
-			'''
-			print("Z'_i = {}".format(mat_Z_prime[i]))
-			print("mat_A = \n{}".format(mat_A))
-			print("r_vals = {}".format(r_vals))
-			'''
-			mean_lnST_vals, sigma_lnST_vals = [], []
+            rainbow_vals = []
+            for i in range(simulations):
+                    r_vals = np.dot(mat_Z_prime[i], mat_A)
+                    '''
+                    print("Z'_i = {}".format(mat_Z_prime[i]))
+                    print("mat_A = \n{}".format(mat_A))
+                    print("r_vals = {}".format(r_vals))
+                    '''
+                    mean_lnST_vals, sigma_lnST_vals = [], []
 
-			for j in range(n):
+                    for j in range(n):
 
-				S0, sigma, q = S0_vals[j], sigma_vals[j], qi_vals[j]
-				mean_lnST = np.log(S0) + (r - q - ( ( sigma ** 2.0 )/ 2.0) ) * T # mean of lnST
-				sigma_lnST = sigma * np.sqrt(T)								     # sigma of lnST
+                            S0, sigma, q = S0_vals[j], sigma_vals[j], qi_vals[j]
+                            mean_lnST = np.log(S0) + (r - q - ( ( sigma ** 2.0 )/ 2.0) ) * T # mean of lnST
+                            sigma_lnST = sigma * np.sqrt(T)								     # sigma of lnST
 
-				mean_lnST_vals.append(mean_lnST)
-				sigma_lnST_vals.append(sigma_lnST)
+                            mean_lnST_vals.append(mean_lnST)
+                            sigma_lnST_vals.append(sigma_lnST)
 
-			# get S_1T, S_2T, ..., S_nT
-			SiT_vals = []
+                    # get S_1T, S_2T, ..., S_nT
+                    SiT_vals = []
 
-			for j in range(n):
-				lnST = r_vals[j] * np.sqrt(T) + mean_lnST_vals[j] # // ri ~ N(0, sigma^2), but
-		 														  # // lnST ~ N(log(S0) + (r - q - pow(sigma, 2.0) / 2.0) * T, sigma^2 T)
-				SiT_vals.append(np.e ** lnST)
-			#print("#sim: {}, SiT_vals: {}".format(i, SiT_vals))
-				
-			rainbow_payoff = calcPayoffRainbow(SiT_vals, K)
-			payoff = rainbow_payoff['payoff']
-			#qi = qi_vals[rainbow_result.i]
-			
-			#double pv_rainbow_val = payoff * exp(-(r - qi) * T);
-			pv_rainbow_val = payoff * (np.e ** (-r * T))
-			rainbow_vals.append(pv_rainbow_val)
+                    for j in range(n):
+                            lnST = r_vals[j] * np.sqrt(T) + mean_lnST_vals[j] # // ri ~ N(0, sigma^2), but
+                                                                                                                              # // lnST ~ N(log(S0) + (r - q - pow(sigma, 2.0) / 2.0) * T, sigma^2 T)
+                            SiT_vals.append(np.e ** lnST)
+                    #print("#sim: {}, SiT_vals: {}".format(i, SiT_vals))
+                            
+                    rainbow_payoff = calcPayoffRainbow(SiT_vals, K)
+                    payoff = rainbow_payoff['payoff']
+                    #qi = qi_vals[rainbow_result.i]
+                    
+                    #double pv_rainbow_val = payoff * exp(-(r - qi) * T);
+                    pv_rainbow_val = payoff * (np.e ** (-r * T))
+                    rainbow_vals.append(pv_rainbow_val)
 
-		expected_rainbow_val = np.mean(rainbow_vals)
-		#print("rainbow_vals = {}, expected_rainbow_val = {}".format(rainbow_vals, expected_rainbow_val))
-		rainbow_results.append(expected_rainbow_val)
+            expected_rainbow_val = np.mean(rainbow_vals)
+            #print("rainbow_vals = {}, expected_rainbow_val = {}".format(rainbow_vals, expected_rainbow_val))
+            rainbow_results.append(expected_rainbow_val)
 
-	#print("rainbow_results = {}".format(rainbow_results))
-	rainbow_val_mean = np.mean(rainbow_results)
-	rainbow_val_std = np.std(rainbow_results)
-
-	print("Answer for Bonus 2.")
-	print("mean: {}, std: {}".format(rainbow_val_mean, rainbow_val_std))
-	print("0.95 C.I. of a rainbow option value by a MonteCarlo simulation: [{}, {}]".format(rainbow_val_mean - 2 * rainbow_val_std, rainbow_val_mean + 2 * rainbow_val_std))
+    #print("rainbow_results = {}".format(rainbow_results))
+    rainbow_val_mean = np.mean(rainbow_results)
+    rainbow_val_std = np.std(rainbow_results)
+    
+    print("------------------------------")
+    print("### Answer for Bonus 2 ###")
+    print("mean: {:.6f}, std: {:.6f}".format(rainbow_val_mean, rainbow_val_std))
+    print("0.95 C.I.: [{:.6f}, {:.6f}]".format(rainbow_val_mean - 2 * rainbow_val_std, rainbow_val_mean + 2 * rainbow_val_std))
