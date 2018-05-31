@@ -1,6 +1,8 @@
 Homework 3
 ===
 
+Link: http://homepage.ntu.edu.tw/~jryanwang/course/Financial%20Computation%20or%20Financial%20Engineering%20(graduate%20level)/Homework_3.pdf
+
 Basic Requirement
 ---
 - Rainbow Option: Max( Max(S1, S2, ..., Sn) - K, 0 )
