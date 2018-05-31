@@ -103,10 +103,6 @@ public:
 	Node () {
 		St = -1, depth = 0, isLeaf = true;
 
-		//S_max_vals = new MaxStList;            // empty
-		//option_european = new vector<double>;  // empty
-		//option_american = new vector<double>;  // empty
-
 		up_parent = down_parent = NULL;
 		up_sib = down_sib = NULL;
 		up_child = down_child = NULL;
@@ -117,16 +113,42 @@ public:
 	Node (double St) { // root constructor, maybe
 		this->St = St, depth = 0, isLeaf = false;
 
-		//MaxStList* tmp_s_vals = new MaxStList;
-		//vector<double>* tmp_opt_european = new vector<double>;
-		//vector<double>* tmp_opt_american = new vector<double>;
-
-		//S_max_vals = tmp_s_vals;
-		//option_european = tmp_opt_european;
-		//option_american = tmp_opt_american;
-
 		NODE_TOTAL += 1;
 	}
+
+    void create_Node(double new_St) {
+        St = new_St;
+        depth = 0;
+        isLeaf = false;
+    }
+
+    void create_Node(double new_St, vector<double>& St_list) {
+		St = new_St;	
+		depth = 0;
+		isLeaf = false;
+
+		// Recording possible Smax
+		int size_list = St_list.size();
+		bool isStAdded = false;
+
+		for (int i = 0; i < size_list; i += 1) {
+			double S_max = St_list[i];
+			if (S_max >= St) {
+				S_max_vals.add_St(S_max);
+			} else { // parent_S_max < St
+				if (!isStAdded)
+					S_max_vals.add_St(St);
+					isStAdded = true;
+			}
+		}
+
+		up_parent = down_parent = NULL;
+		up_sib = down_sib = NULL;
+		up_child = down_child = NULL;
+
+		NODE_TOTAL += 1;
+    
+    }
 
 	Node (double St, vector<double>& St_list) { // constructor for root node
 		this->St = St;	
@@ -136,9 +158,6 @@ public:
 		// Recording possible Smax
 		int size_list = St_list.size();
 		bool isStAdded = false;
-		//S_max_vals = new MaxStList;
-		//option_european = new vector<double>;
-		//option_american = new vector<double>;
 
 		for (int i = 0; i < size_list; i += 1) {
 			double S_max = St_list[i];
@@ -162,28 +181,10 @@ public:
 	~Node() { 
 		//delete option_european;
 		//delete option_american;
-		//cout << "A Node is destroyed.\n"; 
-
+		//cout << "A Node is destroyed.\n";
 		NODE_TOTAL -= 1;
 	}
 
-	void addUpChild(double u) {
-		//double uS_t = roundDouble(u * St, 2);
-		double uS_t = u * St;
-		up_child = new Node(uS_t);       // create a upper child.
-		up_child->depth = depth + 1;     // update depth
-		up_child->down_parent = this;    // for this child, `this' is its `down_parent'
-		up_child->inheritSmax(this);     // inherit Smax from `this'
-	}
-
-	void addDownChild(double d) {
-		//double dS_t = roundDouble(d * St, 2);
-		double dS_t = d * St;
-		down_child = new Node(dS_t);     // create a lower child.
-		down_child->depth = depth + 1;   // update depth
-		down_child->up_parent = this;    // for this child, `this' is its `up_parent'
-		down_child->inheritSmax(this);   // inherit Smax from `this'
-	}
 
 	void inheritSmax(Node* parent) {
 		if (parent == NULL) { 					// the up-most node
@@ -253,11 +254,32 @@ public:
 				}
 			}
 			// update size, max_list
-			//S_max_vals = new MaxStList(combined_S_max_list);
 			S_max_vals = MaxStList(combined_S_max_list);
 
 			return;
 		}
+	}
+
+	void addUpChild(double u) {
+		//double uS_t = roundDouble(u * St, 2);
+		double uS_t = u * St;
+		//up_child = new Node(uS_t);       // create a upper child.
+        up_child = new Node;
+        up_child->create_Node(uS_t);
+		up_child->depth = depth + 1;     // update depth
+		up_child->down_parent = this;    // for this child, `this' is its `down_parent'
+		up_child->inheritSmax(this);     // inherit Smax from `this'
+	}
+
+	void addDownChild(double d) {
+		//double dS_t = roundDouble(d * St, 2);
+		double dS_t = d * St;
+		//down_child = new Node(dS_t);     // create a lower child.
+        down_child = new Node;
+        down_child->create_Node(dS_t);
+		down_child->depth = depth + 1;   // update depth
+		down_child->up_parent = this;    // for this child, `this' is its `up_parent'
+		down_child->inheritSmax(this);   // inherit Smax from `this'
 	}
 
 	pair_option findOptionVal(double St, double S_max, double u) { 
@@ -287,7 +309,8 @@ public:
 			//double uSt = roundDouble(St * u, 2);
 			double uSt = St * u;
 
-			return this->findOptionVal(St, uSt, u);
+			//return this->findOptionVal(St, uSt, u);
+            return findOptionVal(St, uSt, u);
 		}
 	}
 
@@ -303,7 +326,6 @@ public:
 		} else {
 			Node* _up_child = this->up_child;
 			Node* _down_child = this->down_child;
-			
 
 			for (int i = 0; i < vec_S_max.size(); i += 1) { // With S_max_i, calculate the put value for put_i
 				double S_max = vec_S_max[i];
@@ -440,9 +462,7 @@ pair_option binomLookback( double St, double r, double q, double sigma, double t
 	//dT = roundDouble(dT, 4), u = roundDouble(u, 4), d = roundDouble(d, 4), p = roundDouble(p, 4);
 	printf("u: %f, d: %f, p: %f, dT: %f\n", u, d, p, dT);
 
-	//vector<double>* root_S_max = new vector<double>;
 	vector<double> root_S_max;
-    //root_S_max->push_back(St);
 	root_S_max.push_back(S_max_t);
 
 	Node root = Node(St, root_S_max);
@@ -454,8 +474,6 @@ pair_option binomLookback( double St, double r, double q, double sigma, double t
 	int cur_depth = root.depth;
 	
 	// TODO: SET UP THE CORRECT LINK BETWEEN YOUR CHILDREN.
-
-    printf("here\n!");
 
 	while (cur_depth < n) {                       				 // in depth n, there are (n + 1) nodes to spawn a child.
 		Node* bottom_node = nodeQueue.front();    				 // the lower most node to spawn 2 child.
@@ -472,7 +490,6 @@ pair_option binomLookback( double St, double r, double q, double sigma, double t
 		Node* prev_up_child = bottom_node->up_child;  		     // `prev_node'(up_child of `this') should inherit 
 																 // from the next node(up_sib of `this')
 		 										  				 // popped from the queue.
-
 		for (int i = 1; i <= cur_depth; i += 1) {
 			Node* next_up_sib = nodeQueue.front();  			 // pop out the next node to spawn up child.
 			nodeQueue.pop();
@@ -568,7 +585,6 @@ int main(int argc, char const **argv) {
     
 	pair_option option_val = binomLookback(St, r, q, sigma, t, T, S_max_t, n, simulations, repetitions);
 	printf("option_euro: %f, option_american: %f\n", option_val.euro, option_val.amer);
-	printf("Unfree node ptr are: %d\n", NODE_TOTAL);
 
 	return 0;
 }
