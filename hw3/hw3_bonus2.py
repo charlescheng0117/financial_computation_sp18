@@ -154,7 +154,7 @@ if __name__ == '__main__':
     DEBUG = False
     print("----------     Bonus 2     ----------")
     print("Monte Carlo Simulation - Bonus 2")
-    print("Number of Simulations: {}\nNumber of Repetitions: {}\nPeriods: {}".format(simulations, repetitions, n))
+    print("Number of Simulations: {}\nNumber of Repetitions: {}\nn: {}".format(simulations, repetitions, n))
     print("K: {}\nr: {}\nT: {}".format(K, r, T))
     if DEBUG:
         print("S0_vals = {}".format(S0_vals))

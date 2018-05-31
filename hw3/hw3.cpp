@@ -227,7 +227,7 @@ double monteCarloRainbow(double K, double r, double T, int simulations, int repe
 						 vector<double>& S0_vals, vector<double>& qi_vals, vector<double>& sigma_vals,
 						 vector< vector<double> >& mat_A) {
 	printf("Monte Carlo Simulation - Basic Requirement\n");
-	printf("Number of simulations: %d\nNumber of repetitions: %d\nPeriods: %d\n", simulations, repetitions, n);
+	printf("Number of simulations: %d\nNumber of repetitions: %d\nn: %d\n", simulations, repetitions, n);
 	printf("K: %f\nr: %f\nT: %f\n", K, r, T);
 
     #ifdef DEBUG
@@ -312,7 +312,7 @@ double bonus_monteCarloRainbow(double K, double r, double T, int simulations, in
 
     // Bonus 1
 	printf("Monte Carlo Simulation - Bonus 1\n");
-	printf("Number of simulations: %d\nNumber of repetitions: %d\nPeriods: %d\n", simulations, repetitions, n);
+	printf("Number of simulations: %d\nNumber of repetitions: %d\nn: %d\n", simulations, repetitions, n);
 	printf("K: %f\nr: %f\nT: %f\n", K, r, T);
     
     #ifdef DEBUG    
