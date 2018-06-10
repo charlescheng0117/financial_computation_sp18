@@ -52,8 +52,8 @@ double max_vec(vector<double>& v) {
 int main(int argc, char **argv) {
 	// load data
 	if (argc != 2) {
-		cout << "Command arguments not correct.\n";
-		//return -1;
+        printf("Usage: ./monte <input_file>\n");
+		return -1;
 	}
 	char* in_file = argv[1];
 	ifstream in(in_file);
@@ -61,19 +61,21 @@ int main(int argc, char **argv) {
 	double St, r, q, sigma, t, T, S_max_t;
 	int n, simulations, repetitions;
 
-	/*
 	in >> St >> r >> q >> sigma >> t >> T >> S_max_t;
 	in >> n >> simulations >> repetitions;
-	*/
 	
-	St = 50.0, r = 0.1, q = 0.05, sigma = 0.4, t = 1.0, T = 4.0, S_max_t = 60.0;
-	n = 20, simulations = 1000, repetitions = 20;
+	//St = 50.0, r = 0.1, q = 0.05, sigma = 0.4, t = 1.0, T = 4.0, S_max_t = 60.0;
+	//n = 20, simulations = 1000, repetitions = 20;
 
 	double S_beg = St;
-	int days = (int) ceil((T - t) * 365);
-	double dT = 1.0 / 365.0; // in terms of days
+	//int days = (int) ceil((T - t) * 365);
+	//int days = (int) ceil((T - t) * 250);
+    int days = n;
+	//double dT = 1.0 / 365.0; // in terms of days
+	//double dT = 1.0 / 250.0; // in terms of days
+	double dT = (T - t) / (double) n; // in terms of days
 
-	printf("Monte Carlo simulation to price European lookback puts.\n");
+	printf("Basic requirement: Monte Carlo simulation\n");
 	printf("St = %f, r = %f, q = %f, sigma = %f, t = %f, T = %f, S_max_t = %f\n", St, r, q, sigma, t, T, S_max_t);
 	printf("n  = %d, simulations = %d, repetitions = %d\n", n, simulations, repetitions);
 
@@ -84,24 +86,29 @@ int main(int argc, char **argv) {
 
 	vector<double> expected_put_vals;
 	for (int rep = 0; rep < repetitions; rep += 1) {
-		printf("#%d iteration.\n", rep);
+		//printf("#%d iteration.\n", rep);
 		vector<double> sim_results;
 
 		for (int i = 0; i < simulations; i += 1) {
 			vector<double> S_u_list;
+            //S_u_list.push_back(S_beg); // add S_beg
 			S_u_list.push_back(S_max_t);
 
 			double S_prev, S_next;
 			int remained_days = 0;
 			S_prev = S_beg, S_next = 0.0;
 
-			remained_days = days;
+			remained_days = days; // my way
+            //remained_days = n;
 			//printf("runs = %d\n", runs);
 			while (remained_days > 0) {
 				//printf("dt = %f\n", dT);
 				double mean_lnS_u = log(S_prev) + (r - q - ( pow(sigma, 2.0) / 2.0) ) * dT; // mean of lnST
+				//double mean_lnS_u = log(S_prev) + (r - q - ( pow(sigma, 2.0) / 2.0) ) * ((T - t) / (double) n); // mean of lnST
 				double sigma_lnS_u = sigma * sqrt(dT);								   	    // sigma of lnST
 
+				//double mean_lnS_u = log(S_beg) + (r - q - ( pow(sigma, 2.0) / 2.0) ) * ( (days - remained_days) * dT); // mean of lnST
+				//double sigma_lnS_u = sigma * sqrt( (days - remained_days) *  dT);								   	    // sigma of lnST
 				//printf("mean_lnS_u = %f, sigma_lnS_u = %f\n", mean_lnS_u, sigma_lnS_u);
 
 				normal_distribution<double> normal(mean_lnS_u, sigma_lnS_u);
@@ -135,9 +142,9 @@ int main(int argc, char **argv) {
 	//display(expected_put_vals);
 	double sim_mean = mean_vector(expected_put_vals);
 	double sim_std  = std_vector(expected_put_vals);
-
-	printf("Monte Carlo results.\n");
+    
+    printf("### Answer for Monte Carlo Simulation ###\n");
 	printf("mean: %f, std: %f\n", sim_mean, sim_std);
-	printf("0.95 C.I. of a lookback put option: [%f, %f]\n", sim_mean - 2 * sim_std, sim_mean + 2 * sim_std);
+	printf("0.95 C.I. [%f, %f]\n", sim_mean - 2 * sim_std, sim_mean + 2 * sim_std);
 	return 0;
 }

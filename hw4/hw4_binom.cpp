@@ -263,6 +263,7 @@ public:
 	void addUpChild(double u) {
 		//double uS_t = roundDouble(u * St, 2);
 		double uS_t = u * St;
+        //printf("uS_t = %f\n", uS_t);
 		//up_child = new Node(uS_t);       // create a upper child.
         up_child = new Node;
         up_child->create_Node(uS_t);
@@ -292,7 +293,8 @@ public:
 
 		for (int i = 0; i < vec_S_max.size(); i += 1) {
 			//if (St == vec_S_max[i]) {
-			if (abs(S_max - vec_S_max[i]) <= 0.01) {
+			//if (abs(S_max - vec_S_max[i]) <= 0.01) {
+			if (abs(S_max - vec_S_max[i]) <= 0.00001) {
 				idx = i;
 				found = true;
 				break;
@@ -447,7 +449,6 @@ void deleteTree(Node* root) {
 
 pair_option binomLookback( double St, double r, double q, double sigma, double t, double T,
 				  double S_max_t, int n, int simulations, int repetitions ) {
-	printf("Pricing of a Lookback option for Binomial Tree.\n");
 	printf("Number of periods: %d\n", n);
 	printf("St = %f, r = %f, q = %f, sigma = %f, t = %f, T = %f, S_max_t = %f\n", St, r, q, sigma, t, T, S_max_t);
 
@@ -493,6 +494,7 @@ pair_option binomLookback( double St, double r, double q, double sigma, double t
 		for (int i = 1; i <= cur_depth; i += 1) {
 			Node* next_up_sib = nodeQueue.front();  			 // pop out the next node to spawn up child.
 			nodeQueue.pop();
+
 			prev_up_child->inheritSmax(next_up_sib);    		 // inheriting
 			next_up_sib->down_child = prev_up_child;             // setup the child link
 			prev_up_child->up_parent = next_up_sib;				 // setup the parent link
@@ -522,6 +524,10 @@ pair_option binomLookback( double St, double r, double q, double sigma, double t
 		int i = 0;
 		while (cur_Node != NULL) {
 			cur_Node->calcOptionVal(u, r, q, dT, p);
+            
+            // debug
+            //printf("#depth %d: ", i);
+            //cur_Node->display();
 
 			/*
 			printf("i = %d\n", i);
@@ -554,9 +560,8 @@ pair_option binomLookback( double St, double r, double q, double sigma, double t
 	option_val.euro = (root.option_european)[0]; // european option
 	option_val.amer = (root.option_american)[0]; // american option
 
-	cout << "Euro: " << option_val.euro << "\n";
-	cout << "Amer: " << option_val.amer << "\n";
-	cout << "Total nodes are: " << NODE_TOTAL << "\n";
+	//cout << "Euro: " << option_val.euro << "\n";
+	//cout << "Amer: " << option_val.amer << "\n";
 	//deleteTree(&root);
 	return option_val;
 }
@@ -564,8 +569,8 @@ pair_option binomLookback( double St, double r, double q, double sigma, double t
 int main(int argc, char const **argv) {
 	// load data
 	if (argc != 2) {
-		cout << "Command arguments not correct.\n";
-		//return -1;
+        printf("Usage: ./binom <input_file>\n");
+		return -1;
 	}
 
 	const char* in_file = argv[1];
@@ -583,8 +588,10 @@ int main(int argc, char const **argv) {
 	St = 50, r = 0.1, q = 0.05, sigma = 0.4, t = 1, T = 4, S_max_t = 60;
 	n = 100, simulations = 1000, repetitions = 20;*/
     
+	printf("Basic requirement: Binomial Tree Model\n");
 	pair_option option_val = binomLookback(St, r, q, sigma, t, T, S_max_t, n, simulations, repetitions);
-	printf("option_euro: %f, option_american: %f\n", option_val.euro, option_val.amer);
+	printf("### Answer for Binomial Tree Model ###\n");
+    printf("European: %f\nAmerican: %f\n", option_val.euro, option_val.amer);
 
 	return 0;
 }
