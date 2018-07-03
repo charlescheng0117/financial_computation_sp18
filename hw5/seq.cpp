@@ -141,6 +141,40 @@ void print_vec(vector<double>& vec) {
     cout << "\n";
 }
 
+pair<int, int> binary_search(vector<double> arr, int l, int r, double x)
+{
+   int n = arr.size();
+   if (r >= l)
+   {
+        int mid = l + (r - l)/2;
+ 
+        // If the element is present at the middle 
+        // itself
+        if (  abs(arr[mid] - x) < 0.001 ) {
+            return pair<int, int>(mid, mid);
+        }
+ 
+        // If element is smaller than mid, then 
+        // it can only be present in left subarray
+        if (arr[mid -1] > x && x > arr[mid]) {
+            return pair<int, int>(mid-1, mid);
+        }
+
+        if (arr[mid] > x && x > arr[mid + 1]) {
+            return pair<int, int>(mid, mid+1);
+        }
+
+        if (arr[mid] < x)  
+            return binary_search(arr, l, mid-1, x);
+        // Else the element can only be present
+        // in right subarray
+        return binary_search(arr, mid+1, r, x);
+   }
+ 
+   // We reach here when element is not 
+   // present in array
+   return pair<int, int>(n-1, n-1);
+}
 
 int main(int argc, char const *argv[]) {
 	
@@ -251,7 +285,9 @@ int main(int argc, char const *argv[]) {
                 // find A_u in the range [A(i+1, j, k_u), A(i+1, j, k_u - 1)]
                 // to get k_u
                 // then compute w_u, C_u
-                
+               
+                /* sequential_search */
+                /*
                 // linear
                 pair<int, int> range = sequential_search(tree[i+1][j].A_vec, A_u);
                 if ( range.first == range.second ) {
@@ -296,6 +332,63 @@ int main(int argc, char const *argv[]) {
                 
                 // log
                 log_range = sequential_search(tree[i+1][j+1].A_log_vec, A_d_log);
+                if ( log_range.first == log_range.second ) {
+                    k_d_log = log_range.first;
+                    C_d_log = tree[i+1][j+1].C_log_vec[k_d_log];
+                } else {
+                    k_d_log = log_range.second;
+                    w_d_log = ( tree[i+1][j+1].A_vec[k_d_log -1] - A_d_log ) / ( tree[i+1][j+1].A_vec[k_d_log - 1] - tree[i+1][j+1].A_vec[k_d_log]);
+                    C_d_log = w_d_log * tree[i+1][j+1].C_vec[k_d_log] + (1 - w_d_log) * tree[i+1][j+1].C_vec[k_d_log - 1];
+                }
+                */
+
+                // binary search
+                // linear
+
+                // linear
+                pair<int, int> range = binary_search(tree[i+1][j].A_vec, 0, M+1, A_u);
+                if ( range.first == range.second ) {
+                    k_u = range.first;
+                    C_u = tree[i+1][j].C_vec[k_u];
+                } else {
+                    k_u = range.second;
+                    w_u = ( tree[i+1][j].A_vec[k_u -1] - A_u ) / ( tree[i+1][j].A_vec[k_u - 1] - tree[i+1][j].A_vec[k_u]);
+                    C_u = w_u * tree[i+1][j].C_vec[k_u] + (1 - w_u) * tree[i+1][j].C_vec[k_u - 1];
+                }
+
+                // log
+                pair<int, int> log_range = binary_search(tree[i+1][j].A_log_vec, 0, M+1, A_u_log);
+                if ( log_range.first == log_range.second ) {
+                    k_u_log = log_range.first;
+                    C_u_log = tree[i+1][j].C_log_vec[k_u_log];
+                } else {
+                    k_u_log = log_range.second;
+                    //printf("i = %d, j = %d, k = %d ", i, j, k);
+                    //printf("A_log_u = %lf, k_u_log = %d\n", A_u_log, k_u_log);
+                    //print_vec(tree[i+1][j].A_log_vec);
+                    w_u_log = ( tree[i+1][j].A_vec[k_u_log -1] - A_u_log ) / ( tree[i+1][j].A_vec[k_u_log - 1] - tree[i+1][j].A_vec[k_u_log]);
+                    C_u_log = w_u_log * tree[i+1][j].C_vec[k_u_log] + (1 - w_u_log) * tree[i+1][j].C_vec[k_u_log - 1];
+                }
+
+                double A_d = ( (i + passing_period + 1) * A_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) / (double) (i + passing_period + 2);
+                double A_d_log = ( (i + passing_period + 1) * A_log_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) / (double) (i + passing_period + 2);
+
+                // find A_d and k_d
+                // then compute w_d, C_d
+
+                // linear
+                range = binary_search(tree[i+1][j+1].A_vec, 0, M+1, A_d);
+                if ( range.first == range.second ) {
+                    k_d = range.first;
+                    C_d = tree[i+1][j+1].C_vec[k_d];
+                } else {
+                    k_d = range.second;
+                    w_d = ( tree[i+1][j+1].A_vec[k_d -1] - A_d ) / ( tree[i+1][j+1].A_vec[k_d - 1] - tree[i+1][j+1].A_vec[k_d] );
+                    C_d = w_d * tree[i+1][j+1].C_vec[k_d] + (1 - w_d) * tree[i+1][j+1].C_vec[k_d - 1];
+                }
+                
+                // log
+                log_range = binary_search(tree[i+1][j+1].A_log_vec, 0, M+1, A_d_log);
                 if ( log_range.first == log_range.second ) {
                     k_d_log = log_range.first;
                     C_d_log = tree[i+1][j+1].C_log_vec[k_d_log];
