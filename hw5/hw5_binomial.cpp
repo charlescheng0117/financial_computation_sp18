@@ -141,7 +141,7 @@ void print_vec(vector<double>& vec) {
     cout << "\n";
 }
 
-pair<int, int> binary_search(vector<double> arr, int l, int r, double x)
+pair<int, int> binary_search(vector<double>& arr, int l, int r, double x)
 {
    int n = arr.size();
    if (r >= l)
@@ -409,8 +409,6 @@ int main(int argc, char const *argv[]) {
         }
     
     }
-    
-    //print_tree(tree);
 
 	printf("\n\n\nResults start here. \n\n\n");
     printf("European(Linear): %lf\n", tree[0][0].C_vec[0]);
