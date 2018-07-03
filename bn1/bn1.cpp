@@ -59,18 +59,10 @@ double N(double x) { // Normal dist. cdf
 	}
 } 
 
-//double callBlackScholes(double S0, double K, double r, double q, double sigma, double T) {
-double callBlackScholes(double sigma) {
-	double d1 = calcD1(S0, K, r, q, sigma, T);
-	double d2 = calcD2(S0, K, r, q, sigma, T);
-	return S0 * exp(-q * T) * N(d1) - K * exp(-r * T) * N(d2);
-}
-
-double putBlackScholes(double S0, double K, double r, double q, double sigma, double T) {
-	double d1 = calcD1(S0, K, r, q, sigma, T);
-	double d2 = calcD2(S0, K, r, q, sigma, T);
-	return K * exp(-r * T) * N(-d2) - S0 * exp(-q * T) * N(-d1);
-}
+//double callBlackScholes(double S0, double K, double r, double q, double sigma, double T) 
+//double putBlackScholes(double S0, double K, double r, double q, double sigma, double T) 
+double callBlackScholes(double sigma);
+double putBlackScholes(double sigma);
 
 double calcCall(double ST, double K) {
 	return max(ST - K, (double) 0.0);
@@ -197,131 +189,15 @@ vector<double> CRRBinomial(double S0, double K, double r, double q, double sigma
 
 	return results;
 }
-vector<double> oneColumnCRRBinomial(double S0, double K, double r, double q, double sigma, double T, int n) { // n: # of periods
-    #ifdef DEBUG
-    printf("Number of periods: %d\n", n);
-	printf("S0 = %lf, K = %lf, r = %lf, q = %lf, sigma = %lf, T = %lf\n", S0, K, r, q, sigma, T);
-    #endif
 
-	double u, d, p, dT;
-	double t = 0.0; // always starts at t = 0
-
-	dT = T/n;
-	u = exp(sigma * sqrt(dT));
-	d = 1/u;
-	p = (exp((r-q) * dT) - d)/(u - d);
-	printf("p: %lf, u: %lf, d: %lf, dT: %lf\n", p, u, d, dT);
-
-	double ret_Call = 0.0, retPut = 0.0;
-	vector<double> results;
-
-	double tempSi[n + 1]; // compute Si
-	double tempCi_eu[n + 1]; // compute european Ci
-	double tempPi_eu[n + 1]; // compute european Pi
-	double tempCi_am[n + 1]; // compute american Ci
-	double tempPi_am[n + 1]; // compute american Pi
-
-	//cout << "Ci is: ";
-	for (int i = 0; i <= n; i += 1) { // leaf's values
-		double Si = S0 * pow(u, n - i) * pow(d, i); // Si at t = i if S0 goes up n - i times.
-		tempSi[i] = Si;
-		//cout << Si << " ";
-		double Ci = calcCall(Si, K), Pi = calcPut(Si, K);
-
-		tempCi_eu[i] = Ci;
-		tempPi_eu[i] = Pi;
-
-		tempCi_am[i] = Ci;
-		tempPi_am[i] = Pi;
-	}
-	//cout << '\n';
-
-	for (int i = n - 1; i >= 0; i -= 1) { // from n - 1, n - 2, ..., 0
-		for (int j = 0; j <= i; j += 1) { // c(i, j) = e^(-r dt) * (p * c(i + 1, j) + (1 - p) * c(i + 1, j + 1))
-			//double Si = p * temp[j] + (1 - p) * temp[j + 1];
-			//tempSi[j] = Si * exp(-r * T/n);
-			double Sij = S0 * pow(u, i - j) * pow(d, j);
-			double Cu_eu = tempCi_eu[j], Cd_eu = tempCi_eu[j + 1];
-			double Pu_eu = tempPi_eu[j], Pd_eu = tempPi_eu[j + 1];		
-
-			tempCi_eu[j] = exp(-r * dT) * (p * Cu_eu + (1 - p) * Cd_eu); 
-			tempPi_eu[j] = exp(-r * dT) * (p * Pu_eu + (1 - p) * Pd_eu);
-
-			double Cu_am = tempCi_am[j], Cd_am = tempCi_am[j + 1];
-			double Pu_am = tempPi_am[j], Pd_am = tempPi_am[j + 1];	
-
-			double rv_Ci_am = exp(-r * dT) * (p * Cu_am + (1 - p) * Cd_am);  // retension value of Call
-			double rv_Pi_am = exp(-r * dT) * (p * Pu_am + (1 - p) * Pd_am);  // retension value of Put
-
-			//printf("Exercise value of call: %f\n", calcCall(Sij, K));
-			//printf("Current value of call:  %f\n", tempCi_eu[j]);
-			tempCi_am[j] = max(rv_Ci_am, calcCall(Sij, K));
-			//printf("Value of American call:  %f\n", tempCi_am[j]);
-			tempPi_am[j] = max(rv_Pi_am, calcPut(Sij, K));
-		}
-	}
-	double C0_eu = tempCi_eu[0];
-	double P0_eu = tempPi_eu[0];
-	double C0_am = tempCi_am[0];
-	double P0_am = tempPi_am[0];
-
-	results.push_back(C0_eu), results.push_back(P0_eu);
-	results.push_back(C0_am), results.push_back(P0_am);
-
-	return results;
-}
-
-vector<double> combinatorialPricing(double S0, double K, double r, double q, double sigma, double T, int n) {
-    #ifdef DEBUG
-    printf("Number of periods: %d\n", n);
-	printf("S0 = %lf, K = %lf, r = %lf, q = %lf, sigma = %lf, T = %lf\n", S0, K, r, q, sigma, T);
-    #endif
-
-	double u, d, p;
-	double dT;
-	double t = 0.0; // always starts at t = 0
-
-	dT = T/n;
-	u = exp(sigma * sqrt(dT));
-	d = 1 / u;
-	p = (exp((r-q) * dT) - d)/(u - d);
-	//printf("p: %Lf, u: %Lf, d: %Lf, dT: %f\n", p, u, d, dT);
-
-	double retCall = 0.0, retPut = 0.0;
-	vector<double> results;
-
-	for (int i = 0; i <= n; i += 1) {
-		double lnSi = log(S0) + (n - i) * log(u) + i * log(d); // Si at t = i if S0 goes up i times.
-		double Si = exp(lnSi);
-		double callXi = calcCall(Si, K);  // payoff of call at t = i 
-		double putXi = calcPut(Si, K);    // payoff of put at t = i 
-		//printf("i is: %d, Si is: %f, callXi is: %f, putXi is: %f\n", i, Si, callXi, putXi);
-
-		if (callXi != 0)
-			//printf("lnComb is: %f\n", lnComb(n, i));
-			retCall += exp( lnComb(n, i) + (n - i) * log(p) + i * log(1 - p) + log(callXi) ); // S0 * u^(n - i) * d^(i)
-			//printf("retCall: %f\n", retCall);
-		if (putXi != 0)
-			retPut  += exp( lnComb(n, i) + (n - i) * log(p) + i * log(1 - p) + log(putXi)  ); 
-		//printf("retCall now is: %f, retPut now is: %f\n", retCall, retPut);
-	}
-
-	double C0 = retCall * exp(-r * T);
-	double P0 = retPut * exp(-r * T);
-
-	results.push_back(C0), results.push_back(P0);
-
-	return results;
-
-}
+double combinatorial_binom_call(double sigma);
+double combinatorial_binom_put(double sigma);
+double bisection(int model, int option_t, int eu_na);
+double newton(int model, int option_t, int eu_na);
 
 void print_line() {
     printf("--------------------------------------------------------------------------------\n");
 }
-
-double bisection(int model, int option_t, int eu_na);
-double newton(int model, int option_t, int eu_na);
-
 
 double S0, K, r, q, T, option_price;
 int n;
@@ -351,7 +227,6 @@ int main(int argc, char const *argv[])
 
     bisection(BS, CALL, EU);
 
-    /*
     // preprocess ln_fac
     ln_fac = vector<double>(n + 1);
 
@@ -362,6 +237,7 @@ int main(int argc, char const *argv[])
         //printf("%f ", ln_fac[i]);
     }
 
+    /*
     print_line();
     // Basic requirement
     printf("Basic requirement:\n");
@@ -418,34 +294,148 @@ double putBlackScholes(double sigma) {
 	return K * exp(-r * T) * N(-d2) - S0 * exp(-q * T) * N(-d1);
 }
 
+double combinatorial_binom(double sigma, int option_t) { // for european
+	double u, d, p;
+	double dT;
+	double t = 0.0; // always starts at t = 0
+
+	dT = T/n;
+	u = exp(sigma * sqrt(dT));
+	d = 1 / u;
+	p = (exp((r-q) * dT) - d)/(u - d);
+
+	double retCall = 0.0, retPut = 0.0;
+	vector<double> results;
+
+	for (int i = 0; i <= n; i += 1) {
+		double lnSi = log(S0) + (n - i) * log(u) + i * log(d); // Si at t = i if S0 goes up i times.
+		double Si = exp(lnSi);
+		double callXi = calcCall(Si, K);  // payoff of call at t = i 
+		double putXi = calcPut(Si, K);    // payoff of put at t = i 
+		//printf("i is: %d, Si is: %f, callXi is: %f, putXi is: %f\n", i, Si, callXi, putXi);
+
+		if (callXi != 0)
+			//printf("lnComb is: %f\n", lnComb(n, i));
+			retCall += exp( lnComb(n, i) + (n - i) * log(p) + i * log(1 - p) + log(callXi) ); // S0 * u^(n - i) * d^(i)
+			//printf("retCall: %f\n", retCall);
+		if (putXi != 0)
+			retPut  += exp( lnComb(n, i) + (n - i) * log(p) + i * log(1 - p) + log(putXi)  ); 
+		//printf("retCall now is: %f, retPut now is: %f\n", retCall, retPut);
+	}
+
+	double C0 = retCall * exp(-r * T);
+	double P0 = retPut * exp(-r * T);
+
+    if (option_t == CALL) {
+        return C0;
+    } else {
+        return P0;
+    }
+
+}
+
+double combinatorial_binom_call(double sigma) { // for european
+	double u, d, p;
+	double dT;
+	double t = 0.0; // always starts at t = 0
+
+	dT = T/n;
+	u = exp(sigma * sqrt(dT));
+	d = 1 / u;
+	p = (exp((r-q) * dT) - d)/(u - d);
+
+	double retCall = 0.0, retPut = 0.0;
+	vector<double> results;
+
+	for (int i = 0; i <= n; i += 1) {
+		double lnSi = log(S0) + (n - i) * log(u) + i * log(d); // Si at t = i if S0 goes up i times.
+		double Si = exp(lnSi);
+		double callXi = calcCall(Si, K);  // payoff of call at t = i 
+		double putXi = calcPut(Si, K);    // payoff of put at t = i 
+		//printf("i is: %d, Si is: %f, callXi is: %f, putXi is: %f\n", i, Si, callXi, putXi);
+
+		if (callXi != 0)
+			//printf("lnComb is: %f\n", lnComb(n, i));
+			retCall += exp( lnComb(n, i) + (n - i) * log(p) + i * log(1 - p) + log(callXi) ); // S0 * u^(n - i) * d^(i)
+			//printf("retCall: %f\n", retCall);
+		if (putXi != 0)
+			retPut  += exp( lnComb(n, i) + (n - i) * log(p) + i * log(1 - p) + log(putXi)  ); 
+		//printf("retCall now is: %f, retPut now is: %f\n", retCall, retPut);
+	}
+
+	double C0 = retCall * exp(-r * T);
+	double P0 = retPut * exp(-r * T);
+
+    return C0;
+}
+
+double combinatorial_binom_put(double sigma) { // for european
+	double u, d, p;
+	double dT;
+	double t = 0.0; // always starts at t = 0
+
+	dT = T/n;
+	u = exp(sigma * sqrt(dT));
+	d = 1 / u;
+	p = (exp((r-q) * dT) - d)/(u - d);
+
+	double retCall = 0.0, retPut = 0.0;
+	vector<double> results;
+
+	for (int i = 0; i <= n; i += 1) {
+		double lnSi = log(S0) + (n - i) * log(u) + i * log(d); // Si at t = i if S0 goes up i times.
+		double Si = exp(lnSi);
+		double callXi = calcCall(Si, K);  // payoff of call at t = i 
+		double putXi = calcPut(Si, K);    // payoff of put at t = i 
+		//printf("i is: %d, Si is: %f, callXi is: %f, putXi is: %f\n", i, Si, callXi, putXi);
+
+		if (callXi != 0)
+			//printf("lnComb is: %f\n", lnComb(n, i));
+			retCall += exp( lnComb(n, i) + (n - i) * log(p) + i * log(1 - p) + log(callXi) ); // S0 * u^(n - i) * d^(i)
+			//printf("retCall: %f\n", retCall);
+		if (putXi != 0)
+			retPut  += exp( lnComb(n, i) + (n - i) * log(p) + i * log(1 - p) + log(putXi)  ); 
+		//printf("retCall now is: %f, retPut now is: %f\n", retCall, retPut);
+	}
+
+	double C0 = retCall * exp(-r * T);
+	double P0 = retPut * exp(-r * T);
+
+    return P0;
+}
+
 double bisection_helper( double (*f) (double), double option_price) {
     double ret;
 
-    double a0 = -10, b0 = 10;
-    double an, bn;
+    double a0 = -0.1126, b0 = 1.126;
+    double an, bn, xn;
     double fa, fb, fxn;
 
     an = a0;
     bn = b0;
     xn = a0 + (b0 - a0) / 2.0;
-
-    while ( abs( (*f)(xn) - option_price ) > 0.0001  ) {
+    
+    int cnt = 0;
+    while ( ! (abs( (*f)(xn) - option_price ) < 0.001 ) ) {
+        printf("option_price: %lf\n", option_price);
+        printf("%d, xn: %lf, fxn: %lf \n", cnt, xn, (*f)(xn));
+        printf("%d, an: %lf, fan: %lf \n", cnt, an, (*f)(an));
+        printf("%d, bn: %lf, fbn: %lf \n", cnt, bn, (*f)(bn));
         
-        fa = (*f)(an);
-        fxn = (*f)(xn);
+
+        fa = (*f)(an) - option_price;
+        fxn = (*f)(xn) - option_price;
 
         if ( (fa * fxn) < 0 ) {
             bn = xn;
         } else {
             an = xn;
         }
-
-        xn = a0 + (b0 - a0) / 2.0;
+        ++cnt;    
+        xn = an + (bn - an) / 2.0;
     
     }
-    
     return xn;
-
 }
 
 double bisection(int model, int option_t, int eu_na) {
@@ -453,9 +443,32 @@ double bisection(int model, int option_t, int eu_na) {
     // option_t: 0, call, 1, put
     // eu_na: 0, eu, 1, na
 
+    auto f_ptr;
+
+    if (model == BS) {
+        if (option_t == CALL) {
+            model_ptr = callBlackScholes;
+
+        } else { //PUT
+            model_ptr = putBlackScholes;
+        }
+    } else { // Binomial tree
+        if (option_t == CALL) {
+            if (eu_na == EU) {
+                mo
+            }
+        }
+    
+    }
+
+   
 
     // BS, eu, call
     double ans = bisection_helper(callBlackScholes, option_price);
+    cout << callBlackScholes(0.3) << "\n";
+    cout << ans << "\n";
+    cout << option_price << "\n";
+
 
     return 0.0;
 }
