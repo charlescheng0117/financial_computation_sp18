@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
 
 		for (int i = 0; i < n_sim; i++) {
 			vector<double> S_t_list;
-            S_t_list.push_back(S_t);
+            //S_t_list.push_back(S_t);
             
             double S_prev = S_t, S_next;
             
@@ -110,7 +110,9 @@ int main(int argc, char **argv) {
             double sum = S_ave_t * passing_period + 
                          accumulate(S_t_list.begin(), S_t_list.end(), 0.0);
 
-			double S_ave = sum / (passing_period + n + 1); // S_t + (remained_days) of S_next => n + 1 values
+			//double S_ave = sum / (passing_period + n + 1); // S_t + (remained_days) of S_next => n + 1 values
+			//double S_ave = sum / (passing_period + n + 1); // S_t + (remained_days) of S_next => n + 1 values
+			double S_ave = sum / (passing_period + n ); // S_t + (remained_days) of S_next => n + 1 values
 
 			double payoff = max(S_ave - K, 0.0);
 			payoff = payoff * exp(-r * (T_minus_t) );

@@ -1,4 +1,4 @@
-FILE=2.in
+FILE=4.in
 
 echo "Compiling source code"
 make

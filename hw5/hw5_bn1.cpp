@@ -164,13 +164,15 @@ struct Node {
 };
 
 double compute_A_max_ij(double S_0, double S_ave_t, double passing_period, double i, double j, double u, double d) {
-	double res = (S_0 * (1 - pow(u, i - j + 1) ) / (1 - u) + S_0 * pow(u, i - j) * d * (1 - pow(d, j)) / (1 - d) + S_ave_t * passing_period ) / (i + passing_period + 1.0);
+	//double res = (S_0 * (1 - pow(u, i - j + 1) ) / (1 - u) + S_0 * pow(u, i - j) * d * (1 - pow(d, j)) / (1 - d) + S_ave_t * passing_period ) / (i + passing_period + 1.0);
+	double res = (S_0 * (1 - pow(u, i - j + 1) ) / (1 - u) + S_0 * pow(u, i - j) * d * (1 - pow(d, j)) / (1 - d) + S_ave_t * passing_period - S_0) / (i + passing_period );
     return res;
 	//return roundDouble(res, 4);
 }
 
 double compute_A_min_ij(double S_0, double S_ave_t, double passing_period, int i, int j, double u, double d) {
-	double res = (S_0 * (1 - pow(d, j + 1)) / (1 - d) + S_0 * pow(d, j) * u * (1 - pow(u, i - j)) / (1 - u) + S_ave_t * passing_period ) / (i + passing_period + 1.0);
+	//double res = (S_0 * (1 - pow(d, j + 1)) / (1 - d) + S_0 * pow(d, j) * u * (1 - pow(u, i - j)) / (1 - u) + S_ave_t * passing_period ) / (i + passing_period + 1.0);
+	double res = (S_0 * (1 - pow(d, j + 1)) / (1 - d) + S_0 * pow(d, j) * u * (1 - pow(u, i - j)) / (1 - u) + S_ave_t * passing_period - S_0) / (i + passing_period );
 	return res;
     //return roundDouble(res, 4);
 }	
@@ -317,8 +319,8 @@ void binomial(int M) {
             for (int k = 0; k <= M; ++k) {
                 double A_ijk = tree[i][j].A_vec[k];
                 double A_log_ijk = tree[i][j].A_log_vec[k];
-                double A_u = ( (i + passing_period + 1) * A_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (double) (i + passing_period + 2);
-                double A_u_log = ( (i + passing_period + 1) * A_log_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (double) (i + passing_period + 2);
+                double A_u = ( (i + passing_period + 1) * A_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (i + passing_period + 2);
+                double A_u_log = ( (i + passing_period + 1) * A_log_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (i + passing_period + 2);
                
                 /* sequential_search */
                 // find A_u in the range [A(i+1, j, k_u), A(i+1, j, k_u - 1)]
@@ -352,8 +354,8 @@ void binomial(int M) {
 
                 // find A_d and k_d
                 // then compute w_d, C_d
-                double A_d = ( (i + passing_period + 1) * A_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) / (double) (i + passing_period + 2);
-                double A_d_log = ( (i + passing_period + 1) * A_log_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) / (double) (i + passing_period + 2);
+                double A_d = ( (i + passing_period + 1) * A_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) / (i + passing_period + 2);
+                double A_d_log = ( (i + passing_period + 1) * A_log_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) /(i + passing_period + 2);
 
                 // linear
                 range = binary_search(tree[i+1][j+1].A_vec, 0, M+1, A_d);
