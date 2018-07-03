@@ -124,9 +124,11 @@ int main(int argc, char **argv) {
 
 	double sim_mean = mean_vector(expected_option_vals);
 	double sim_std  = std_vector(expected_option_vals);
-    
+   
+    printf("-----------------------------------------\n");
     printf("### Answer for Monte Carlo Simulation ###\n");
 	printf("mean: %f, std: %f\n", sim_mean, sim_std);
 	printf("0.95 C.I. [%f, %f]\n", sim_mean - 2 * sim_std, sim_mean + 2 * sim_std);
+    printf("-----------------------------------------\n");
 	return 0;
 }
