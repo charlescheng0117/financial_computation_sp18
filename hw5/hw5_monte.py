@@ -7,7 +7,7 @@ def exp(x):
 	return np.e ** x
 
 if __name__ == '__main__':
-	file_name = "hw5_input.txt"
+	file_name = "1.in"
 	inputs = list(open(file_name))[0]
 	inputs = [float(x) for x in inputs.split()]
 
