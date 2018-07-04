@@ -10,6 +10,8 @@
 #include <functional>
 #include <chrono>
 
+#define EPSILON 0.00000001
+
 using namespace std;
 
 typedef vector< vector<double> > Matrix;
@@ -44,77 +46,22 @@ pair<int, int> sequential_search(vector<double>& vec, double target) {
     return pair<int, int>(n -1, n - 1);
 }
 
-pair<int, int> binary_search(vector<double>& arr, int l, int r, double x)
-{
-   int n = arr.size();
-   if (r >= l)
-   {
-        int mid = l + (r - l)/2;
- 
-        // If the element is present at the middle 
-        // itself
-        if (  abs(arr[mid] - x) < 0.001 ) {
-            return pair<int, int>(mid, mid);
+pair<int, int> binary_search(vector<double>& arr,int left, int right, double key) {
+    int mid = left + ( right - left ) / 2 ;
+    if ( abs ( arr[mid] - key ) < 0.0000001 ) {
+        return pair<int, int>(mid, mid);
+    } else if ( arr[mid] > key ) {
+       return binary_search ( arr, mid + 1, right, key);
+    } else if ( arr[mid] < key ) {
+        if (abs ( arr[mid-1] - key ) < 0.0000001) {
+            return pair<int, int>(mid-1, mid-1) ;
+        } else if (arr[mid-1] > key) {
+            return pair<int, int>(mid-1, mid) ;
+        } else {
+            return binary_search(arr, left, mid - 1, key );
         }
- 
-        // If element is smaller than mid, then 
-        // it can only be present in left subarray
-        if (arr[mid -1] > x && x > arr[mid]) {
-            return pair<int, int>(mid-1, mid);
-        }
-
-        if (arr[mid] > x && x > arr[mid + 1]) {
-            return pair<int, int>(mid, mid+1);
-        }
-
-        if (arr[mid] < x)  
-            return binary_search(arr, l, mid-1, x);
-        // Else the element can only be present
-        // in right subarray
-        return binary_search(arr, mid+1, r, x);
-   }
- 
-   // We reach here when element is not 
-   // present in array
-   return pair<int, int>(n-1, n-1);
+    }
 }
-
-pair<int, int> interpolation_search(vector<double>& arr, int l, int r, double x)
-{
-   int n = arr.size();
-   if (r >= l)
-   {
-        //int mid = l + (r - l)/2;
-        int mid = (x - arr[l]) / (arr[r] - arr[l]) * n;
-
-        // If the element is present at the middle 
-        // itself
-        if (  abs(arr[mid] - x) < 0.001 ) {
-            return pair<int, int>(mid, mid);
-        }
- 
-        // If element is smaller than mid, then 
-        // it can only be present in left subarray
-        if (arr[mid -1] > x && x > arr[mid]) {
-            return pair<int, int>(mid-1, mid);
-        }
-
-        if (arr[mid] > x && x > arr[mid + 1]) {
-            return pair<int, int>(mid, mid+1);
-        }
-
-        if (arr[mid] < x)  
-            return binary_search(arr, l, mid-1, x);
-        // Else the element can only be present
-        // in right subarray
-        return binary_search(arr, mid+1, r, x);
-   }
- 
-   // We reach here when element is not 
-   // present in array
-   return pair<int, int>(n-1, n-1);
-}
-
 
 double S_i_j(double S_0, double i, double j, double u, double d) {
 	double res = S_0 * pow(u, i - j) * pow(d, j);
@@ -170,7 +117,7 @@ double compute_A_max_ij(double S_0, double S_ave_t, double passing_period, doubl
 	//return roundDouble(res, 4);
 }
 
-double compute_A_min_ij(double S_0, double S_ave_t, double passing_period, int i, int j, double u, double d) {
+double compute_A_min_ij(double S_0, double S_ave_t, double passing_period, double i, double j, double u, double d) {
 	//double res = (S_0 * (1 - pow(d, j + 1)) / (1 - d) + S_0 * pow(d, j) * u * (1 - pow(u, i - j)) / (1 - u) + S_ave_t * passing_period ) / (i + passing_period + 1.0);
 	double res = (S_0 * (1 - pow(d, j + 1)) / (1 - d) + S_0 * pow(d, j) * u * (1 - pow(u, i - j)) / (1 - u) + S_ave_t * passing_period - S_0) / (i + passing_period );
 	return res;
@@ -224,6 +171,8 @@ int M, n, n_sim, n_rep;
 double u, d, p, dT;
 double passing_period;
 
+vector< pair<int, double> > linear_res;
+vector< pair<int, double> > log_res;
 
 int main(int argc, char const *argv[]) {
 
@@ -243,7 +192,7 @@ int main(int argc, char const *argv[]) {
     printf("n_rep        = %d\n", n_rep);
 
 	dT = (T_minus_t - 0.0) / (double) n;
-    passing_period = passing_time / (T_minus_t / n);
+    passing_period = passing_time / (T_minus_t / n) + 1;
 	u = exp(sigma * sqrt(dT));
 	d = 1/u;
 	p = (exp((r-q) * dT) - d)/(u - d);
@@ -262,11 +211,25 @@ int main(int argc, char const *argv[]) {
         }
     }
 
-    for (int m = 50; m <= 500; m += 50) {
+    for (int m = 10; m <= 500; m += 10) {
         cout << m << "\n";
         tree = vector< vector<Node> >(n + 1, vector<Node>(n + 1, Node(m)) );
         binomial(m);
     }
+
+    ofstream linear_f, log_f;
+    linear_f.open("linear.out");
+    log_f.open("log.out");
+
+    int n_line = linear_res.size();
+    
+    for (int i = 0; i < n_line; ++i) {
+        linear_f << linear_res[i].first << " " << linear_res[i].second << "\n";
+        log_f << log_res[i].first << " " << log_res[i].second << "\n";
+    }
+    linear_f.close();
+    log_f.close();
+
 	return 0;
 }
 
@@ -311,98 +274,144 @@ void binomial(int M) {
     double C_u_log, C_d_log;
     int k_u_log, k_d_log;
 
+    double C_u_am, C_d_am, C_u_log_am, C_d_log_am;
+
     pair<int, int> range, log_range;
 
     for (int i = n - 1; i >= 0; --i) {
         for (int j = 0; j <= i; ++j) {
-            Node node_ij = tree[i][j];
+            //Node node_ij = tree[i][j];
             for (int k = 0; k <= M; ++k) {
                 double A_ijk = tree[i][j].A_vec[k];
                 double A_log_ijk = tree[i][j].A_log_vec[k];
-                double A_u = ( (i + passing_period + 1) * A_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (i + passing_period + 2);
-                double A_u_log = ( (i + passing_period + 1) * A_log_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (i + passing_period + 2);
-               
+                //double A_u = ( (i + passing_period + 1) * A_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (i + passing_period + 2);
+                //double A_u_log = ( (i + passing_period + 1) * A_log_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (i + passing_period + 2);
+                double A_u = ( (i + passing_period ) * A_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (double) (i + passing_period + 1);
+                double A_u_log = ( (i + passing_period ) * A_log_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (double) (i + passing_period + 1);
+                
                 /* sequential_search */
                 // find A_u in the range [A(i+1, j, k_u), A(i+1, j, k_u - 1)]
                 // to get k_u
                 // then compute w_u, C_u
 
                 // linear
-                range = binary_search(tree[i+1][j].A_vec, 0, M+1, A_u);
+                //range = sequential_search(tree[i+1][j].A_vec, A_u);
+                range = binary_search(tree[i+1][j].A_vec, 0, M, A_u);
 
                 if ( range.first == range.second ) {
                     k_u = range.first;
-                    C_u = tree[i+1][j].C_vec[k_u];
+                    //C_u = tree[i+1][j].C_vec[k_u];
+                    w_u = 1;
                 } else {
                     k_u = range.second;
-                    w_u = ( tree[i+1][j].A_vec[k_u -1] - A_u ) / ( tree[i+1][j].A_vec[k_u - 1] - tree[i+1][j].A_vec[k_u]);
-                    C_u = w_u * tree[i+1][j].C_vec[k_u] + (1 - w_u) * tree[i+1][j].C_vec[k_u - 1];
+
+                    if (abs(tree[i+1][j].A_vec[k_u - 1] - tree[i+1][j].A_vec[k_u]) < EPSILON) {
+                        w_u = 1;
+                    } else {
+                        w_u = ( tree[i+1][j].A_vec[k_u -1] - A_u ) / ( tree[i+1][j].A_vec[k_u - 1] - tree[i+1][j].A_vec[k_u]);
+                    }
+
                 }
+                C_u = w_u * tree[i+1][j].C_vec[k_u] + (1 - w_u) * tree[i+1][j].C_vec[k_u - 1];
 
                 // log
-                log_range = binary_search(tree[i+1][j].A_log_vec, 0, M+1, A_u_log);
+                //log_range = sequential_search(tree[i+1][j].A_log_vec, A_u_log);
+                log_range = binary_search(tree[i+1][j].A_log_vec, 0, M, A_u_log);
 
                 if ( log_range.first == log_range.second ) {
                     k_u_log = log_range.first;
-                    C_u_log = tree[i+1][j].C_log_vec[k_u_log];
+                    //C_u_log = tree[i+1][j].C_log_vec[k_u_log];
+                    w_u_log = 1;
                 } else {
                     k_u_log = log_range.second;
-                    w_u_log = ( tree[i+1][j].A_vec[k_u_log -1] - A_u_log ) / ( tree[i+1][j].A_vec[k_u_log - 1] - tree[i+1][j].A_vec[k_u_log]);
-                    C_u_log = w_u_log * tree[i+1][j].C_vec[k_u_log] + (1 - w_u_log) * tree[i+1][j].C_vec[k_u_log - 1];
+                    if (abs(tree[i+1][j].A_log_vec[k_u_log - 1] - tree[i+1][j].A_log_vec[k_u_log]) < EPSILON) {
+                        w_u_log = 1;
+                    } else {
+                        w_u_log = ( tree[i+1][j].A_log_vec[k_u_log -1] - A_u_log ) / ( tree[i+1][j].A_log_vec[k_u_log - 1] - tree[i+1][j].A_log_vec[k_u_log]);
+                    }
+                    //C_u_log = w_u_log * tree[i+1][j].C_log_vec[k_u_log] + (1 - w_u_log) * tree[i+1][j].C_log_vec[k_u_log - 1];
                 }
-
+                C_u_log = w_u_log * tree[i+1][j].C_log_vec[k_u_log] + (1 - w_u_log) * tree[i+1][j].C_log_vec[k_u_log - 1];
 
                 // find A_d and k_d
                 // then compute w_d, C_d
-                double A_d = ( (i + passing_period + 1) * A_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) / (i + passing_period + 2);
-                double A_d_log = ( (i + passing_period + 1) * A_log_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) /(i + passing_period + 2);
+                //double A_d = ( (i + passing_period + 1) * A_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) / (double) (i + passing_period + 2);
+                //double A_d_log = ( (i + passing_period + 1) * A_log_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) / (double) (i + passing_period + 2);
+                double A_d = ( (i + passing_period ) * A_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) / (i + passing_period + 1);
+                double A_d_log = ( (i + passing_period ) * A_log_ijk + S_t * pow(u, i - j) * pow(d, j + 1) ) / (i + passing_period + 1);
 
                 // linear
-                range = binary_search(tree[i+1][j+1].A_vec, 0, M+1, A_d);
+                //range = sequential_search(tree[i+1][j+1].A_vec, A_d);
+                range = binary_search(tree[i+1][j+1].A_vec, 0, M, A_d);
 
                 if ( range.first == range.second ) {
                     k_d = range.first;
-                    C_d = tree[i+1][j+1].C_vec[k_d];
+                    //C_d = tree[i+1][j+1].C_vec[k_d];
+                    w_d = 1;
                 } else {
                     k_d = range.second;
-                    w_d = ( tree[i+1][j+1].A_vec[k_d -1] - A_d ) / ( tree[i+1][j+1].A_vec[k_d - 1] - tree[i+1][j+1].A_vec[k_d] );
-                    C_d = w_d * tree[i+1][j+1].C_vec[k_d] + (1 - w_d) * tree[i+1][j+1].C_vec[k_d - 1];
+                    
+                    if (abs(tree[i+1][j+1].A_vec[k_d - 1] - tree[i+1][j+1].A_vec[k_d]) < EPSILON) {
+                        w_d = 1;
+                    } else {
+                        w_d = ( tree[i+1][j+1].A_vec[k_d -1] - A_d ) / ( tree[i+1][j+1].A_vec[k_d - 1] - tree[i+1][j+1].A_vec[k_d] );
+                    }
+                    //C_d = w_d * tree[i+1][j+1].C_vec[k_d] + (1 - w_d) * tree[i+1][j+1].C_vec[k_d - 1];
                 }
+                C_d = w_d * tree[i+1][j+1].C_vec[k_d] + (1 - w_d) * tree[i+1][j+1].C_vec[k_d - 1];
                 
                 // log
-                log_range = binary_search(tree[i+1][j+1].A_log_vec, 0, M+1, A_d_log);
+                //log_range = sequential_search(tree[i+1][j+1].A_log_vec, A_d_log);
+                log_range = binary_search(tree[i+1][j+1].A_log_vec, 0, M, A_d_log);
 
                 if ( log_range.first == log_range.second ) {
                     k_d_log = log_range.first;
-                    C_d_log = tree[i+1][j+1].C_log_vec[k_d_log];
+                    //C_d_log = tree[i+1][j+1].C_log_vec[k_d_log];
+                    w_d_log = 1;
                 } else {
                     k_d_log = log_range.second;
-                    w_d_log = ( tree[i+1][j+1].A_vec[k_d_log -1] - A_d_log ) / ( tree[i+1][j+1].A_vec[k_d_log - 1] - tree[i+1][j+1].A_vec[k_d_log]);
-                    C_d_log = w_d_log * tree[i+1][j+1].C_vec[k_d_log] + (1 - w_d_log) * tree[i+1][j+1].C_vec[k_d_log - 1];
+                    if (abs(tree[i+1][j+1].A_log_vec[k_d_log - 1] - tree[i+1][j+1].A_log_vec[k_d_log]) < EPSILON) {
+                        w_d_log = 1;
+                    } else {
+                        w_d_log = ( tree[i+1][j+1].A_log_vec[k_d_log -1] - A_d_log ) / ( tree[i+1][j+1].A_log_vec[k_d_log - 1] - tree[i+1][j+1].A_log_vec[k_d_log] );
+                    }
+                    //C_d_log = w_d_log * tree[i+1][j+1].C_log_vec[k_d_log] + (1 - w_d_log) * tree[i+1][j+1].C_log_vec[k_d_log - 1];
                 }
+                C_d_log = w_d_log * tree[i+1][j+1].C_log_vec[k_d_log] + (1 - w_d_log) * tree[i+1][j+1].C_log_vec[k_d_log - 1];
 
+                
                 // update C(i, j, k)
                 tree[i][j].C_vec[k] = (p * C_u + (1 - p) * C_d) * exp( -r * dT );
                 tree[i][j].C_log_vec[k] = (p * C_u_log + (1 - p) * C_d_log) * exp( -r * dT );
                 // American: max( A(i, j, k) - K, (P * C_u + (1 - P) * C_d) * e^-r * dT
-                tree[i][j].C_am_vec[k] = max( A_ijk - K, tree[i][j].C_vec[k] );
-                tree[i][j].C_am_log_vec[k] = max( A_log_ijk - K, tree[i][j].C_log_vec[k] );
+                /*
+                C_u_am = w_u * tree[i+1][j].C_am_vec[k_u] + (1 - w_u) * tree[i+1][j].C_am_vec[k_u - 1];
+                C_d_am = w_d * tree[i+1][j+1].C_am_vec[k_d] + (1 - w_d) * tree[i+1][j+1].C_am_vec[k_d - 1];
+                C_u_log_am = w_u_log * tree[i+1][j].C_am_log_vec[k_u_log] + (1 - w_u_log) * tree[i+1][j].C_am_log_vec[k_u_log - 1];
+                C_d_log_am = w_d_log * tree[i+1][j+1].C_am_log_vec[k_d_log] + (1 - w_d_log) * tree[i+1][j+1].C_am_log_vec[k_d_log - 1];
 
+                tree[i][j].C_am_vec[k] = max( A_ijk - K, (p * C_u_am + (1-p) * C_d_am ) * exp( -r * dT) );
+                tree[i][j].C_am_log_vec[k] = max( A_log_ijk - K, (p * C_u_log_am + (1-p) * C_d_log_am) * exp(-r * dT) );
+                */
             }
         }
     }
+
     // Record end time
     auto finish = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = finish - start;
     double elapsed_t = elapsed.count();
+
+    linear_res.push_back( pair<int, double>(M, tree[0][0].C_vec[0]) );
+    log_res.push_back(    pair<int, double>(M, tree[0][0].C_log_vec[0]) );
 
     printf("-----------------------------------------------------------------------------\n");
 	printf("###Binomial Tree Model for European and American arithmetic average calls.###\n");
     printf("Computational time(Binary search): %.4lf s\n", elapsed_t);
     printf("European(Linear):    %lf\n", tree[0][0].C_vec[0]);
     printf("European(Logarithm): %lf\n", tree[0][0].C_log_vec[0]);
-    printf("American(Linear):    %lf\n", tree[0][0].C_am_vec[0]);
-    printf("American(Logarithm): %lf\n", tree[0][0].C_am_log_vec[0]);
+    //printf("American(Linear):    %lf\n", tree[0][0].C_am_vec[0]);
+    //printf("American(Logarithm): %lf\n", tree[0][0].C_am_log_vec[0]);
     printf("-----------------------------------------------------------------------------\n");
 
 }
