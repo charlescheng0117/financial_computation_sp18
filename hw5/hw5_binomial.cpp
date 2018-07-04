@@ -308,7 +308,6 @@ int main(int argc, char const *argv[]) {
                     double A_u = ( (i + passing_period ) * A_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (double) (i + passing_period + 1);
                     double A_u_log = ( (i + passing_period ) * A_log_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (double) (i + passing_period + 1);
                     
-                    printf("CMU!\n");
                    
                     /* sequential_search */
                     // find A_u in the range [A(i+1, j, k_u), A(i+1, j, k_u - 1)]
