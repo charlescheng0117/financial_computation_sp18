@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     printf("n_rep        = %d\n", n_rep);
 
 	dT = (T_minus_t) / (double) n;
-    passing_period = passing_time / (dT);
+    passing_period = passing_time / (dT) + 1;
 	u = exp(sigma * sqrt(dT));
 	d = 1/u;
 	p = (exp((r-q) * dT) - d)/(u - d);

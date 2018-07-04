@@ -33,7 +33,7 @@ void print_vec(vector<double>& vec) {
     cout << "\n";
 }
 
-pair<int, int> sequential_search(vector<double>& vec, double target) {
+pair<int, int> sequential_search(vector<double>& vec, double& target) {
     // find range
     // vec: from largest to smallest
     int left = 0, right = 0;
@@ -54,7 +54,7 @@ pair<int, int> sequential_search(vector<double>& vec, double target) {
     return pair<int, int>(n -1, n - 1);
 }
 
-pair<int, int> binary_search(vector<double>& arr,int left, int right, double key) {
+pair<int, int> binary_search(vector<double>& arr,int left, int right, double& key) {
     int mid = left + ( right - left ) / 2 ;
     if ( abs ( arr[mid] - key ) < 0.0000001 ) {
         return pair<int, int>(mid, mid);
@@ -71,7 +71,7 @@ pair<int, int> binary_search(vector<double>& arr,int left, int right, double key
     }
 }
 
-pair<int, int> interpolation_search(vector<double>& arr, int left, int right, double key) {
+pair<int, int> interpolation_search(vector<double>& arr, int left, int right, double& key) {
     int mid ;
     if ( left == right ) {
         mid = left ;
@@ -162,9 +162,6 @@ double compute_A_min_ij(double S_0, double S_ave_t, double passing_period, doubl
     //return roundDouble(res, 4);
 }	
 
-vector< vector<Node> > tree;
-vector< vector<double> > mat_A_max;
-vector< vector<double> > mat_A_min;
 
 void print_mat(vector< vector<double> >& mat) {
     // print upper triangle
@@ -194,6 +191,9 @@ void print_tree(vector< vector<Node> >& tree) {
 
 }
 
+//vector< vector<Node> > tree;
+vector< vector<double> > mat_A_max;
+vector< vector<double> > mat_A_min;
 
 int main(int argc, char const *argv[]) {
 
@@ -225,7 +225,10 @@ int main(int argc, char const *argv[]) {
 
 	printf("u: %f, d: %f, p: %f, dT: %f, passing_period: %f\n", u, d, p, dT, passing_period);
    
-    tree = vector< vector<Node> >(n + 1, vector<Node>(n + 1, Node(M)) );
+    vector< vector<Node> >tree(n + 1, vector<Node>(n + 1, Node(M)) );
+
+
+    //tree = vector< vector<Node> >(n + 1, vector<Node>(n + 1, Node(M)) );
     mat_A_max = vector< vector<double> >(n + 1, vector<double>(n + 1, 0.0) );
     mat_A_min = vector< vector<double> >(n + 1, vector<double>(n + 1, 0.0) );
    
@@ -237,7 +240,7 @@ int main(int argc, char const *argv[]) {
         }
     }
 
-    Node node_ij;
+    //Node node_ij;
     // (2) calculate A(i, j, k)
     for (int i = 0; i <= n; ++i) {
         for (int j = 0; j <= i; ++j) {
@@ -251,12 +254,12 @@ int main(int argc, char const *argv[]) {
     }
 
     // (3) for terminal node(n, j), decide the payoff
-    Node node_nj;
+    //Node node_nj;
     for (int j = 0; j <= n; ++j) {
-        node_nj = tree[n][j];
+        //node_nj = tree[n][j];
         for (int k = 0; k <= M; ++k) {
-            double A_njk = node_nj.A_vec[k];
-            double A_log_njk = node_nj.A_log_vec[k];
+            double A_njk = tree[n][j].A_vec[k];
+            double A_log_njk = tree[n][j].A_log_vec[k];
             tree[n][j].C_vec[k] = max(A_njk - K, 0.0);
             tree[n][j].C_log_vec[k] = max(A_log_njk - K, 0.0);
             tree[n][j].C_am_vec[k] = max(A_njk - K, 0.0);
@@ -290,13 +293,13 @@ int main(int argc, char const *argv[]) {
     //double elapsed_t = elapsed.count();
     //computation_time.push_back(elapsed_t);
 
+
     //for (int t = 0; t < 1; ++t) { // three method
     //for (int t = 0; t < 2; ++t) { // three method
     for (int t = 0; t < 3; ++t) { // three method
         auto start = chrono::high_resolution_clock::now();
         for (int i = n - 1; i >= 0; --i) {
             for (int j = 0; j <= i; ++j) {
-                Node node_ij = tree[i][j];
                 for (int k = 0; k <= M; ++k) {
                     double A_ijk = tree[i][j].A_vec[k];
                     double A_log_ijk = tree[i][j].A_log_vec[k];
@@ -305,6 +308,7 @@ int main(int argc, char const *argv[]) {
                     double A_u = ( (i + passing_period ) * A_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (double) (i + passing_period + 1);
                     double A_u_log = ( (i + passing_period ) * A_log_ijk + S_t * pow(u, i + 1 - j) * pow(d, j)  ) / (double) (i + passing_period + 1);
                     
+                    printf("CMU!\n");
                    
                     /* sequential_search */
                     // find A_u in the range [A(i+1, j, k_u), A(i+1, j, k_u - 1)]
@@ -433,7 +437,6 @@ int main(int argc, char const *argv[]) {
                     C_u_log_am = w_u_log * tree[i+1][j].C_am_log_vec[k_u_log] + (1 - w_u_log) * tree[i+1][j].C_am_log_vec[k_u_log - 1];
                     C_d_log_am = w_d_log * tree[i+1][j+1].C_am_log_vec[k_d_log] + (1 - w_d_log) * tree[i+1][j+1].C_am_log_vec[k_d_log - 1];
 
-                    
 
                     tree[i][j].C_am_vec[k] = max( A_ijk - K, (p * C_u_am + (1-p) * C_d_am ) * exp( -r * dT) );
                     tree[i][j].C_am_log_vec[k] = max( A_log_ijk - K, (p * C_u_log_am + (1-p) * C_d_log_am) * exp(-r * dT) );
