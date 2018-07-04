@@ -14,13 +14,6 @@
 
 using namespace std;
 
-typedef vector< vector<double> > Matrix;
-typedef vector< vector< vector<double> > > Cube;
-
-double roundDouble(double val, int d) {
-	return round(val * pow(10.0, d) ) / pow(10.0, d);
-}
-
 bool greater_double(double x1, double x2) {
     return x1 > x2;
 }
@@ -95,7 +88,6 @@ pair<int, int> interpolation_search(vector<double>& arr, int left, int right, do
         }
     }
 }
-
 
 double S_i_j(double S_0, double i, double j, double u, double d) {
 	double res = S_0 * pow(u, i - j) * pow(d, j);

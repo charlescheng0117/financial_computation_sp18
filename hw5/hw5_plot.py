@@ -1,4 +1,7 @@
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
+
 import matplotlib.pyplot as plt
 
 linear_f = open("./linear.out", "r")
@@ -27,6 +30,7 @@ plt.plot(list_M, list_log_option)
 plt.xlabel("M")
 plt.ylabel("Option value")
 plt.title("Linear vs Log Method")
+plt.show()
 plt.savefig("bonus1.png")
 
 """
