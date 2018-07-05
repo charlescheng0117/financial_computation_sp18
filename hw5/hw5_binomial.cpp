@@ -437,7 +437,7 @@ int main(int argc, char const *argv[]) {
         }
         // Record end time
         //
-        //print_tree(tree);
+        print_tree(tree);
         if (t == 1) {
             printf("Sequential search: \n");
         } else if (t == 0) {
