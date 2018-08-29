@@ -1,1 +1,1 @@
-# financial_computation_sp18
+# Financial Engineering/Financial Computation, NTU, Spring 2018
